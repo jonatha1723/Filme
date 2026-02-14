@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Double Wit - Login Seguro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a, #020617);
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-blur {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        .neon-border:checked {
+            background-color: #3b82f6;
+            border-color: #3b82f6;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <!-- Container de Login -->
+    <div id="login-container" class="w-full max-w-md glass-card rounded-[2.5rem] p-8 md:p-10 shadow-2xl relative overflow-hidden">
+        
+        <!-- Logo Decorativa -->
+        <div class="flex justify-center mb-8">
+            <div class="relative">
+                <div class="absolute inset-0 bg-blue-500 blur-2xl opacity-20 animate-pulse"></div>
+                <div class="relative bg-slate-900 border border-slate-700 w-20 h-20 rounded-2xl flex items-center justify-center shadow-inner">
+                    <svg class="w-12 h-12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="#3b82f6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold text-white tracking-tight">Double Wit</h1>
+            <p class="text-slate-400 mt-2 text-sm">Entre na sua conta para continuar</p>
+        </div>
+
+        <!-- Checkbox de Termos -->
+        <div class="mb-8 p-4 bg-white/5 rounded-2xl border border-white/5">
+            <label class="flex items-start gap-3 cursor-pointer group">
+                <input type="checkbox" id="terms-checkbox" class="mt-1 w-5 h-5 rounded border-slate-700 bg-slate-800 text-blue-500 neon-border transition-all cursor-pointer">
+                <span class="text-xs leading-relaxed text-slate-300">
+                    Li e aceito os <button type="button" onclick="openModal()" class="text-blue-400 hover:text-blue-300 font-bold underline underline-offset-2">Termos de Uso</button> e a <button type="button" onclick="openModal()" class="text-blue-400 hover:text-blue-300 font-bold underline underline-offset-2">Política de Privacidade</button> do aplicativo.
+                </span>
+            </label>
+            <p class="text-[10px] text-slate-500 mt-3 leading-tight">
+                Concordo que meus dados sejam coletados e tratados conforme descrito, podendo ser gerenciados ou excluídos a qualquer momento pelo suporte disponível no app.
+            </p>
+        </div>
+
+        <!-- Botão Google -->
+        <button id="btn-google" disabled class="w-full py-4 px-6 rounded-2xl font-bold flex items-center justify-center gap-4 transition-all opacity-40 grayscale cursor-not-allowed bg-white text-slate-900 shadow-lg active:scale-95">
+            <svg class="w-5 h-5" viewBox="0 0 48 48">
+                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24s.92 7.54 2.56 10.78l7.97-6.19z"/>
+                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+            </svg>
+            Entrar com Google
+        </button>
+
+        <div id="auth-error" class="hidden mt-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center italic"></div>
+    </div>
+
+    <!-- Dashboard Pós-Login -->
+    <div id="dashboard" class="hidden w-full max-w-md glass-card rounded-[2.5rem] p-10 text-center shadow-2xl">
+        <img id="user-photo" class="w-24 h-24 rounded-full mx-auto border-4 border-blue-500/30 p-1 mb-6 shadow-xl" src="" alt="">
+        <h2 id="user-name" class="text-2xl font-bold text-white mb-1"></h2>
+        <p id="user-email" class="text-slate-400 text-sm mb-8"></p>
+        
+        <button id="btn-logout" class="w-full py-4 bg-slate-800 hover:bg-red-900/40 text-slate-300 hover:text-red-400 border border-slate-700 rounded-2xl font-bold transition-all flex items-center justify-center gap-2">
+            <i class="fas fa-sign-out-alt"></i>
+            Encerrar Sessão
+        </button>
+    </div>
+
+    <!-- Modal de Termos -->
+    <div id="terms-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 modal-blur overflow-y-auto">
+        <div class="bg-slate-900 w-full max-w-2xl rounded-[2rem] border border-slate-700 shadow-2xl flex flex-col max-h-[90vh]">
+            <div class="p-6 border-b border-slate-800 flex justify-between items-center">
+                <h3 class="text-xl font-bold text-white">Termos e Privacidade</h3>
+                <button onclick="closeModal()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 hover:text-white">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="p-8 overflow-y-auto custom-scrollbar text-slate-300 text-sm space-y-6 leading-relaxed">
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">1. Aceite</h4>
+                    <p>Ao usar nosso aplicativo, você concorda com estes termos e com a nossa política de privacidade. Quando você marcar a caixa de aceite no cadastro ou login, estaremos registrando que você leu e concordou, incluindo data, hora e dispositivo usado.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">2. Quais dados coletamos</h4>
+                    <p>Coletamos apenas o que é necessário para o app funcionar bem: Nome e foto (login social); Informações de conta (tokens); Dados de uso e arquivos enviados. Não coletamos nada além disso sem o seu consentimento.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">3. Para que usamos seus dados</h4>
+                    <p>Garantir acesso à conta; Operar e melhorar a experiência; Suporte técnico; Proteção contra fraudes e cumprimento de obrigações legais.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">4. Base legal</h4>
+                    <p>Tratamos seus dados com base em consentimento, necessidade contratual, obrigações legais e interesse legítimo equilibrado.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">5. Compartilhamento</h4>
+                    <p>Dados compartilhados apenas com serviços essenciais (Firebase, Google, GitHub) para operação, sob regras rígidas de segurança.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">6. Dados fora do Brasil</h4>
+                    <p>Alguns serviços podem processar dados no exterior, mas mantemos o nível de proteção exigido por lei.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">7. Por quanto tempo mantemos seus dados</h4>
+                    <p>Dados inativos são apagados após 50 dias. Solicitações de exclusão podem ser feitas a qualquer momento via suporte.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">8. Menores de idade</h4>
+                    <p>Não destinado a menores de 13 anos. Coleta apenas com autorização do responsável e segurança extra.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">9. Seus direitos</h4>
+                    <p>Ver, corrigir, excluir ou portar seus dados. Solicitações via Configurações ou Suporte (prazo de até 30 dias).</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">10. Segurança</h4>
+                    <p>Controles de acesso, criptografia e políticas internas. Recomendamos o uso de senhas fortes.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">11. Logs e backups</h4>
+                    <p>Retenção curta para segurança e integridade ou cumprimento de ordens judiciais.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">12. Exclusão e anonimização</h4>
+                    <p>Remoção de dados identificáveis em até 50 dias após solicitação. Dados anonimizados podem ser mantidos para melhorias.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">13. Suporte</h4>
+                    <p>Para questões de privacidade, use a aba de suporte dentro do aplicativo.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">14. Autoridade</h4>
+                    <p>A ANPD é a autoridade responsável no Brasil para reclamações de proteção de dados.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">15. Mudanças</h4>
+                    <p>Notificaremos mudanças importantes no app. O uso contínuo implica em aceite da nova versão.</p>
+                </section>
+                <section>
+                    <h4 class="text-blue-400 font-bold mb-2">16. Considerações finais</h4>
+                    <p>Esta política garante a transparência e conformidade com as práticas de proteção de dados.</p>
+                </section>
+            </div>
+            <div class="p-6 border-t border-slate-800 flex justify-end">
+                <button onclick="closeModal()" class="px-8 py-3 bg-blue-600 hover:bg-blue-500 text-white rounded-xl font-bold transition-all">
+                    Entendi e concordo
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts do Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-DTG7MauMSyvUKDcMxAhLLRAMIyKnYFE",
+            authDomain: "double-wit.firebaseapp.com",
+            projectId: "double-wit",
+            storageBucket: "double-wit.firebasestorage.app",
+            messagingSenderId: "2191174521",
+            appId: "1:2191174521:web:9268d53b6431fd24cb5da8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Elementos UI
+        const checkbox = document.getElementById('terms-checkbox');
+        const btnLogin = document.getElementById('btn-google');
+        const btnLogout = document.getElementById('btn-logout');
+        const loginContainer = document.getElementById('login-container');
+        const dashContainer = document.getElementById('dashboard');
+        const errorDiv = document.getElementById('auth-error');
+
+        // Toggle do Botão de Login
+        checkbox.addEventListener('change', (e) => {
+            if (e.target.checked) {
+                btnLogin.disabled = false;
+                btnLogin.classList.remove('opacity-40', 'grayscale', 'cursor-not-allowed');
+                btnLogin.classList.add('hover:bg-slate-100', 'cursor-pointer');
+            } else {
+                btnLogin.disabled = true;
+                btnLogin.classList.add('opacity-40', 'grayscale', 'cursor-not-allowed');
+                btnLogin.classList.remove('hover:bg-slate-100', 'cursor-pointer');
+            }
+        });
+
+        // Função de Login
+        btnLogin.onclick = async () => {
+            errorDiv.classList.add('hidden');
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (err) {
+                errorDiv.innerText = "Falha na autenticação: Verifique se o Google Login está ativo e o domínio autorizado no Firebase Console.";
+                errorDiv.classList.remove('hidden');
+            }
+        };
+
+        // Função de Logout
+        btnLogout.onclick = () => signOut(auth);
+
+        // Observer
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                loginContainer.classList.add('hidden');
+                dashContainer.classList.remove('hidden');
+                document.getElementById('user-name').innerText = user.displayName;
+                document.getElementById('user-email').innerText = user.email;
+                document.getElementById('user-photo').src = user.photoURL || 'https://via.placeholder.com/96';
+            } else {
+                dashContainer.classList.add('hidden');
+                loginContainer.classList.remove('hidden');
+            }
+        });
+
+        // Modal Logic (Global para os botões HTML)
+        window.openModal = () => document.getElementById('terms-modal').classList.remove('hidden');
+        window.closeModal = () => document.getElementById('terms-modal').classList.add('hidden');
+    </script>
+</body>
+</html>
+
