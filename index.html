@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel Flutuante</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    background: #f2f2f2;
+  }
+
+  /* Painel flutuante */
+  #floatingPanel {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 150px;
+    height: 150px;
+    background: rgba(0,0,0,0.8);
+    color: #fff;
+    border-radius: 15px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  #floatingPanel button {
+    margin: 5px 0;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 10px;
+    background-color: #28a745;
+    color: #fff;
+    cursor: pointer;
+    font-weight: bold;
+  }
+
+  #floatingPanel button:hover {
+    background-color: #218838;
+  }
+</style>
+</head>
+<body>
+
+<h1 style="text-align:center;">Conteúdo do Site</h1>
+<p style="text-align:center;">Este é o site dentro do WebView. O painel flutuante fica sobre ele.</p>
+
+<!-- Painel flutuante -->
+<div id="floatingPanel">
+  <button onclick="alert('Botão 1 clicado')">Botão 1</button>
+  <button onclick="alert('Botão 2 clicado')">Botão 2</button>
+  <button onclick="document.getElementById('floatingPanel').style.display='none'">Fechar</button>
+</div>
+
+<script>
+const panel = document.getElementById('floatingPanel');
+
+let isDragging = false;
+let offsetX = 0;
+let offsetY = 0;
+
+// Início do arraste
+panel.addEventListener('mousedown', e => {
+  isDragging = true;
+  offsetX = e.clientX - panel.offsetLeft;
+  offsetY = e.clientY - panel.offsetTop;
+  panel.style.cursor = "grabbing";
+});
+
+// Movimento do painel
+document.addEventListener('mousemove', e => {
+  if (isDragging) {
+    panel.style.left = (e.clientX - offsetX) + 'px';
+    panel.style.top = (e.clientY - offsetY) + 'px';
+  }
+});
+
+// Fim do arraste
+document.addEventListener('mouseup', e => {
+  isDragging = false;
+  panel.style.cursor = "grab";
+});
+</script>
+
+</body>
+</html>
