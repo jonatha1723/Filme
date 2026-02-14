@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Builder Pro - Gerador de APK</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome para ícones -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        :root {
+            --neon-cyan: #00f2ff;
+            --deep-dark: #050508;
+        }
+        body {
+            background-color: var(--deep-dark);
+            color: #ffffff;
+            font-family: 'Inter', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(15, 15, 25, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(0, 242, 255, 0.3);
+        }
+        .loader {
+            border-top-color: var(--neon-cyan);
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4">
+
+    <!-- Loading Inicial -->
+    <div id="loading-overlay" class="fixed inset-0 z-50 flex items-center justify-center bg-[#050508]">
+        <div class="flex flex-col items-center">
+            <div class="loader w-12 h-12 border-4 border-gray-700 rounded-full mb-4"></div>
+            <p class="text-cyan-400 font-bold tracking-widest animate-pulse">SISTEMA INICIALIZANDO...</p>
+        </div>
+    </div>
+
+    <!-- Interface de Login -->
+    <div id="view-login" class="hidden w-full max-w-md">
+        <div class="glass-panel p-8 rounded-[3rem] text-center shadow-2xl">
+            <div class="mb-8">
+                <div class="w-20 h-20 bg-cyan-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-cyan-500/20 rotate-3 shadow-inner">
+                    <i class="fas fa-microchip text-4xl text-cyan-400"></i>
+                </div>
+                <h1 class="text-3xl font-black italic tracking-tighter text-white uppercase">AI App <span class="text-cyan-400">Builder</span></h1>
+                <p class="text-gray-400 text-sm mt-2">Crie aplicativos reais com inteligência artificial</p>
+            </div>
+
+            <button id="btn-login-google" class="w-full bg-white text-black font-bold py-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-gray-100 transition-all active:scale-95 shadow-lg">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-6 h-6" alt="Google">
+                Entrar com Google
+            </button>
+
+            <p id="auth-error" class="mt-4 text-red-500 text-xs hidden italic"></p>
+        </div>
+    </div>
+
+    <!-- Interface Dashboard (Criação) -->
+    <div id="view-dashboard" class="hidden w-full max-w-2xl flex flex-col gap-6">
+        <!-- Header do Usuário -->
+        <div class="glass-panel p-6 rounded-[2rem] flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <div class="relative">
+                    <img id="user-photo" src="" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-cyan-500 p-0.5">
+                    <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-[#050508] rounded-full"></div>
+                </div>
+                <div>
+                    <h2 id="user-name" class="font-bold text-white leading-tight">...</h2>
+                    <p class="text-xs text-cyan-500 uppercase font-black tracking-widest">Acesso Autorizado</p>
+                </div>
+            </div>
+            <button id="btn-logout" class="p-3 text-gray-400 hover:text-red-500 transition-colors">
+                <i class="fas fa-power-off"></i>
+            </button>
+        </div>
+
+        <!-- Área de Prompt -->
+        <div class="glass-panel p-8 rounded-[2.5rem] flex flex-col gap-6">
+            <div class="flex items-center gap-2 mb-2">
+                <i class="fas fa-terminal text-cyan-400 text-sm"></i>
+                <label class="text-xs font-bold uppercase tracking-widest text-gray-400">Configuração do App</label>
+            </div>
+            
+            <textarea id="app-prompt" rows="5" class="w-full bg-black/50 border border-white/5 rounded-2xl p-5 text-white focus:border-cyan-500/50 focus:ring-1 focus:ring-cyan-500/50 outline-none transition-all placeholder:text-gray-600 shadow-inner" placeholder="Descreva as funções, cores e objetivo do seu aplicativo móvel..."></textarea>
+            
+            <button id="btn-generate" class="w-full bg-cyan-500 hover:bg-cyan-400 text-black font-black py-5 rounded-2xl transition-all shadow-lg flex items-center justify-center gap-3 group">
+                <i class="fas fa-wand-magic-sparkles group-hover:animate-bounce"></i>
+                GERAR APLICATIVO + APK
+            </button>
+        </div>
+
+        <!-- Status do Processamento (Oculto inicialmente) -->
+        <div id="status-container" class="hidden glass-panel p-6 rounded-[2rem] flex items-center gap-4 animate-pulse border-cyan-500/30">
+            <i class="fas fa-circle-notch fa-spin text-cyan-400"></i>
+            <p class="text-sm font-medium text-gray-300">A IA está processando os módulos do sistema...</p>
+        </div>
+    </div>
+
+    <!-- Scripts do Firebase -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // CONFIGURAÇÃO COM SUAS CREDENCIAIS
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiSs-z3089P6-9fx5z-uLn6fVYilot22U",
+            authDomain: "testeeeee-12894.firebaseapp.com",
+            projectId: "testeeeee-12894",
+            storageBucket: "testeeeee-12894.firebasestorage.app",
+            messagingSenderId: "728327375572",
+            appId: "1:728327375572:web:4439521092b8abf6640941"
+        };
+
+        // Inicializar
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        // Elementos da Interface
+        const views = {
+            loading: document.getElementById('loading-overlay'),
+            login: document.getElementById('view-login'),
+            dashboard: document.getElementById('view-dashboard')
+        };
+
+        const components = {
+            userName: document.getElementById('user-name'),
+            userPhoto: document.getElementById('user-photo'),
+            btnGoogle: document.getElementById('btn-login-google'),
+            btnLogout: document.getElementById('btn-logout'),
+            btnGenerate: document.getElementById('btn-generate'),
+            status: document.getElementById('status-container'),
+            error: document.getElementById('auth-error')
+        };
+
+        // Funções de Autenticação
+        const handleLogin = async () => {
+            components.error.classList.add('hidden');
+            try {
+                await signInWithPopup(auth, provider);
+            } catch (error) {
+                components.error.innerText = "Falha na conexão: Verifique se o Google Auth está ativado no Firebase.";
+                components.error.classList.remove('hidden');
+                console.error("Auth Error:", error);
+            }
+        };
+
+        const handleLogout = () => signOut(auth);
+
+        // Observador de Sessão
+        onAuthStateChanged(auth, (user) => {
+            views.loading.classList.add('hidden');
+            if (user) {
+                views.login.classList.add('hidden');
+                views.dashboard.classList.remove('hidden');
+                components.userName.innerText = user.displayName;
+                components.userPhoto.src = user.photoURL || 'https://via.placeholder.com/150';
+            } else {
+                views.dashboard.classList.add('hidden');
+                views.login.classList.remove('hidden');
+            }
+        });
+
+        // Eventos
+        components.btnGoogle.addEventListener('click', handleLogin);
+        components.btnLogout.addEventListener('click', handleLogout);
+
+        components.btnGenerate.addEventListener('click', () => {
+            const prompt = document.getElementById('app-prompt').value;
+            if(!prompt) return alert("Por favor, descreva o aplicativo.");
+            
+            components.status.classList.remove('hidden');
+            components.btnGenerate.disabled = true;
+            components.btnGenerate.classList.add('opacity-50');
+
+            // Simulação de fluxo para APK real (Integrar com Backend aqui)
+            console.log("Prompt enviado para processamento:", prompt);
+            
+            setTimeout(() => {
+                alert("Módulo de IA recebido. Para gerar o APK real, é necessário conectar o servidor de build (Node.js/Cordova) conforme discutido anteriormente.");
+                components.status.classList.add('hidden');
+                components.btnGenerate.disabled = false;
+                components.btnGenerate.classList.remove('opacity-50');
+            }, 3000);
+        });
+
+    </script>
+</body>
+</html>
+
