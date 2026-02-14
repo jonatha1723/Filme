@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Minha Galeria</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #f2f2f2;
+    padding: 20px;
+    text-align: center;
+  }
+  h1 { color: #007bff; }
+  #gallery {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-top: 20px;
+  }
+  .photo {
+    width: 150px;
+    height: 150px;
+    margin: 10px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 2px solid #007bff;
+  }
+  input[type="file"] {
+    margin-top: 20px;
+  }
+  button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  button:hover { background: #218838; }
+</style>
+</head>
+<body>
+
+<h1>Minha Galeria de Fotos</h1>
+
+<input type="file" id="fileInput" multiple accept="image/*">
+<br>
+<button onclick="clearGallery()">Limpar Galeria</button>
+
+<div id="gallery"></div>
+
+<script>
+  // Função para salvar foto no LocalStorage
+  function savePhoto(key, dataUrl) {
+    let photos = JSON.parse(localStorage.getItem('photos') || '[]');
+    photos.push({key, dataUrl});
+    localStorage.setItem('photos', JSON.stringify(photos));
+  }
+
+  // Função para carregar fotos do LocalStorage
+  function loadGallery() {
+    const gallery = document.getElementById('gallery');
+    gallery.innerHTML = '';
+    let photos = JSON.parse(localStorage.getItem('photos') || '[]');
+    photos.forEach(photo => {
+      const img = document.createElement('img');
+      img.src = photo.dataUrl;
+      img.className = 'photo';
+      gallery.appendChild(img);
+    });
+  }
+
+  // Função para limpar a galeria
+  function clearGallery() {
+    if(confirm('Deseja realmente limpar todas as fotos?')) {
+      localStorage.removeItem('photos');
+      loadGallery();
+    }
+  }
+
+  // Upload de fotos
+  document.getElementById('fileInput').addEventListener('change', function(event) {
+    const files = event.target.files;
+    for(let i=0; i<files.length; i++){
+      const file = files[i];
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        savePhoto(file.name, e.target.result);
+        loadGallery();
+      }
+      reader.readAsDataURL(file);
+    }
+    // Limpa input para permitir re-upload do mesmo arquivo
+    event.target.value = '';
+  });
+
+  // Carrega galeria ao iniciar
+  window.onload = loadGallery;
+</script>
+
+</body>
+</html>
