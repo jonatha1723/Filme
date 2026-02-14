@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Double Wit - Acesso Seguro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: radial-gradient(circle at top right, #1e293b, #0f172a, #020617);
+            color: white;
+            min-height: 100vh;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .input-field {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+            outline: none;
+        }
+
+        .step-badge {
+            background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+            padding: 2px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 800;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-view { animation: fadeIn 0.5s ease forwards; }
+    </style>
+</head>
+<body class="flex items-center justify-center p-4">
+
+    <!-- Loading Screen -->
+    <div id="loading-screen" class="fixed inset-0 bg-[#020617] z-50 flex flex-col items-center justify-center">
+        <div class="w-10 h-10 border-4 border-blue-500/20 border-t-blue-500 rounded-full animate-spin mb-4"></div>
+        <p class="text-slate-400 text-[10px] uppercase tracking-[0.2em]">Sincronizando Sessão...</p>
+    </div>
+
+    <!-- Interface Principal -->
+    <main id="auth-card" class="hidden w-full max-w-md glass p-8 md:p-10 rounded-[2.5rem] shadow-2xl animate-view">
+        
+        <!-- Header -->
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold italic tracking-tighter">DOUBLE <span class="text-blue-500">WIT</span></h1>
+            <div id="step-indicator" class="mt-4 flex justify-center gap-2">
+                <span id="badge-1" class="step-badge">PASSO 1</span>
+                <span id="badge-2" class="bg-white/10 px-3 py-0.5 rounded-full text-[10px] text-slate-500 font-bold">PASSO 2</span>
+            </div>
+        </div>
+
+        <!-- VISTA 1: LOGIN GOOGLE (EXTERNO) -->
+        <div id="view-google" class="space-y-6">
+            <div class="bg-blue-500/5 p-6 rounded-3xl border border-blue-500/10 text-center">
+                <i class="fab fa-google text-4xl text-blue-500 mb-4"></i>
+                <h3 class="font-bold">Login Externo Seguro</h3>
+                <p class="text-xs text-slate-400 mt-2">O login será realizado no Chrome para garantir sua segurança total.</p>
+            </div>
+
+            <!-- Termos -->
+            <label class="flex items-start gap-3 cursor-pointer p-2">
+                <input type="checkbox" id="terms-checkbox" class="mt-1 w-5 h-5 rounded border-slate-700 bg-slate-800 text-blue-500">
+                <span class="text-[11px] text-slate-400 leading-relaxed">
+                    Li e concordo com os Termos de Privacidade do Double Wit.
+                </span>
+            </label>
+
+            <button id="btn-google" disabled class="w-full py-5 bg-white text-slate-900 rounded-2xl font-black flex items-center justify-center gap-3 shadow-xl disabled:opacity-20 transition-all active:scale-95">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-5 h-5">
+                AUTENTICAR NO CHROME
+            </button>
+        </div>
+
+        <!-- VISTA 2: E-MAIL E SENHA (APÓS VOLTA DO GOOGLE) -->
+        <div id="view-final" class="hidden space-y-5">
+            <div class="bg-emerald-500/10 p-4 rounded-2xl border border-emerald-500/20 text-center mb-6">
+                <p class="text-emerald-400 text-xs font-bold"><i class="fas fa-check-circle mr-2"></i> Identidade Google Confirmada</p>
+            </div>
+            
+            <h3 class="text-xl font-bold text-center mb-6">Validação Final</h3>
+
+            <form id="final-form" class="space-y-4">
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase ml-2 tracking-widest">E-mail Cadastrado</label>
+                    <input type="email" id="final-email" required class="input-field w-full py-4 px-5 rounded-2xl text-sm" placeholder="seu@email.com">
+                </div>
+
+                <div class="space-y-1">
+                    <label class="text-[10px] font-bold text-slate-500 uppercase ml-2 tracking-widest">Senha de Acesso</label>
+                    <input type="password" id="final-password" required class="input-field w-full py-4 px-5 rounded-2xl text-sm" placeholder="••••••••">
+                </div>
+
+                <button type="submit" class="w-full py-5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl font-black text-sm tracking-widest transition-all shadow-lg shadow-blue-900/40">
+                    LIBERAR ACESSO AO APP
+                </button>
+            </form>
+        </div>
+
+        <p id="msg" class="text-center text-[10px] mt-8 text-slate-500 italic hidden"></p>
+    </main>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithRedirect, 
+            getRedirectResult, 
+            GoogleAuthProvider, 
+            signInWithEmailAndPassword,
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        // CONFIGURAÇÃO DOUBLE WIT
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-DTG7MauMSyvUKDcMxAhLLRAMIyKnYFE",
+            authDomain: "double-wit.firebaseapp.com",
+            projectId: "double-wit",
+            storageBucket: "double-wit.firebasestorage.app",
+            messagingSenderId: "2191174521",
+            appId: "1:2191174521:web:9268d53b6431fd24cb5da8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+        const URL_FINAL = "https://filme-indol-one.vercel.app/";
+
+        // Elementos UI
+        const viewGoogle = document.getElementById('view-google');
+        const viewFinal = document.getElementById('view-final');
+        const badge1 = document.getElementById('badge-1');
+        const badge2 = document.getElementById('badge-2');
+        const btnGoogle = document.getElementById('btn-google');
+        const checkbox = document.getElementById('terms-checkbox');
+        const msg = document.getElementById('msg');
+
+        // 1. Lógica do Checkbox
+        checkbox.onchange = (e) => btnGoogle.disabled = !e.target.checked;
+
+        // 2. Login Google (Abre no Chrome)
+        btnGoogle.onclick = () => {
+            signInWithRedirect(auth, provider);
+        };
+
+        // 3. Captura Retorno e Gerencia Fluxo
+        const checkRedirect = async () => {
+            try {
+                const result = await getRedirectResult(auth);
+                if (result?.user) {
+                    // Usuário acabou de voltar do Chrome logado com Google
+                    // Ativamos a "Vista 2" (E-mail + Senha)
+                    localStorage.setItem('google_verified', 'true');
+                    showFinalStep();
+                }
+            } catch (error) {
+                console.error("Erro no redirect:", error);
+            }
+        };
+
+        // 4. Observer de Sessão
+        onAuthStateChanged(auth, (user) => {
+            document.getElementById('loading-screen').classList.add('hidden');
+            document.getElementById('auth-card').classList.remove('hidden');
+
+            if (user && localStorage.getItem('google_verified') === 'true') {
+                showFinalStep();
+            } else if (user) {
+                // Se já estiver logado e verificado, pula para o destino
+                window.location.replace(URL_FINAL);
+            }
+        });
+
+        function showFinalStep() {
+            viewGoogle.classList.add('hidden');
+            viewFinal.classList.remove('hidden');
+            badge1.className = "bg-emerald-500/20 px-3 py-0.5 rounded-full text-[10px] text-emerald-500 font-bold";
+            badge2.className = "step-badge";
+            badge1.innerHTML = '<i class="fas fa-check"></i> OK';
+        }
+
+        // 5. Validação E-mail e Senha Final
+        document.getElementById('final-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('final-email').value;
+            const pass = document.getElementById('final-password').value;
+
+            msg.innerText = "Validando credenciais...";
+            msg.classList.remove('hidden');
+
+            try {
+                // Valida o e-mail e senha
+                await signInWithEmailAndPassword(auth, email, pass);
+                
+                // Sucesso Total: Limpa flag e Redireciona
+                localStorage.removeItem('google_verified');
+                window.location.replace(URL_FINAL);
+            } catch (error) {
+                msg.innerText = "Erro: E-mail ou senha incorretos.";
+                msg.classList.add('text-red-500');
+            }
+        };
+
+        checkRedirect();
+    </script>
+</body>
+</html>
+
