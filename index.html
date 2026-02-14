@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Double Wit - Login Seguro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(15px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        /* Loader de segurança */
+        .spinner { border: 3px solid rgba(255,255,255,0.1); border-top-color: #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-6">
+
+    <div id="loading-initial" class="fixed inset-0 bg-[#020617] z-50 flex items-center justify-center">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="auth-card" class="w-full max-w-md glass p-10 rounded-[2.5rem] text-center shadow-2xl hidden">
+        <div class="mb-8">
+            <div class="w-20 h-20 bg-blue-500/20 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-blue-500/30">
+                <i class="fas fa-lock text-3xl text-blue-500"></i>
+            </div>
+            <h1 class="text-3xl font-black tracking-tighter">DOUBLE WIT</h1>
+            <p class="text-slate-400 text-sm mt-2">Autenticação de Segurança</p>
+        </div>
+
+        <div class="mb-8 p-4 bg-white/5 rounded-2xl text-left border border-white/5">
+            <label class="flex items-start gap-3 cursor-pointer">
+                <input type="checkbox" id="terms-checkbox" class="mt-1 w-5 h-5 rounded border-slate-700 bg-slate-800 text-blue-500">
+                <span class="text-xs text-slate-300">
+                    Li e aceito os Termos de Uso e Política de Privacidade.
+                </span>
+            </label>
+        </div>
+
+        <button id="btn-google" disabled class="w-full py-4 bg-white text-black rounded-2xl font-bold flex items-center justify-center gap-3 opacity-30 grayscale cursor-not-allowed transition-all active:scale-95 shadow-lg">
+            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/action/google.svg" class="w-5 h-5">
+            ENTRAR COM GOOGLE
+        </button>
+
+        <p id="error-msg" class="text-red-500 text-xs mt-4 hidden"></p>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithRedirect, // Melhor para WebView
+            getRedirectResult, 
+            GoogleAuthProvider, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyC-DTG7MauMSyvUKDcMxAhLLRAMIyKnYFE",
+            authDomain: "double-wit.firebaseapp.com",
+            projectId: "double-wit",
+            storageBucket: "double-wit.firebasestorage.app",
+            messagingSenderId: "2191174521",
+            appId: "1:2191174521:web:9268d53b6431fd24cb5da8"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const provider = new GoogleAuthProvider();
+
+        const btnLogin = document.getElementById('btn-google');
+        const checkbox = document.getElementById('terms-checkbox');
+        const loading = document.getElementById('loading-initial');
+        const authCard = document.getElementById('auth-card');
+        const errorMsg = document.getElementById('error-msg');
+
+        // URL DE DESTINO APÓS LOGIN
+        const URL_FINAL = "https://filme-indol-one.vercel.app/";
+
+        // 1. Verificar se houve retorno de um redirecionamento (essencial para WebView)
+        getRedirectResult(auth).catch((error) => {
+            errorMsg.innerText = "Erro ao retornar do login: " + error.message;
+            errorMsg.classList.remove('hidden');
+        });
+
+        // 2. Escutar mudanças de estado
+        onAuthStateChanged(auth, (user) => {
+            loading.classList.add('hidden');
+            if (user) {
+                // Se logado, pula direto para o site de filmes
+                window.location.replace(URL_FINAL);
+            } else {
+                authCard.classList.remove('hidden');
+            }
+        });
+
+        // 3. Ativar botão
+        checkbox.onchange = (e) => {
+            btnLogin.disabled = !e.target.checked;
+            btnLogin.classList.toggle('opacity-30', !e.target.checked);
+            btnLogin.classList.toggle('grayscale', !e.target.checked);
+            btnLogin.classList.toggle('cursor-not-allowed', !e.target.checked);
+        };
+
+        // 4. Ação de Login (Usando Redirect em vez de Popup)
+        btnLogin.onclick = () => {
+            signInWithRedirect(auth, provider);
+        };
+
+    </script>
+</body>
+</html>
