@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>App Fullscreen</title>
+
+<style>
+html, body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+}
+
+#app {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-family: Arial, sans-serif;
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+    APP EM TELA CHEIA
+</div>
+
+<script>
+function ativarFullscreen() {
+    const el = document.documentElement;
+
+    if (el.requestFullscreen) {
+        el.requestFullscreen();
+    } else if (el.webkitRequestFullscreen) {
+        el.webkitRequestFullscreen(); // Safari
+    } else if (el.msRequestFullscreen) {
+        el.msRequestFullscreen(); // IE/Edge antigo
+    }
+}
+
+// Auto fullscreen ao carregar
+document.addEventListener("DOMContentLoaded", () => {
+    setTimeout(ativarFullscreen, 300);
+});
+
+// Garante fullscreen se sair
+document.addEventListener("fullscreenchange", () => {
+    if (!document.fullscreenElement) {
+        ativarFullscreen();
+    }
+});
+</script>
+
+</body>
+</html>
