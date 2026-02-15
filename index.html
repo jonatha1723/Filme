@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Gerenciador de Arquivos WebView</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{
+  margin:0;
+  font-family:Arial,Helvetica,sans-serif;
+  background:#0f0f14;
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:flex-start;
+  min-height:100vh;
+  padding:20px;
+}
+h1{
+  text-align:center;
+  margin-bottom:20px;
+}
+button{
+  padding:12px 20px;
+  font-size:16px;
+  border:none;
+  border-radius:8px;
+  cursor:pointer;
+  background:#22c55e;
+  color:#000;
+  font-weight:bold;
+  margin:5px 0;
+}
+button:hover{
+  background:#16a34a;
+}
+#arquivos{
+  display:flex;
+  flex-direction:column;
+  width:100%;
+  max-width:500px;
+  margin-top:20px;
+}
+.arquivo{
+  background:#1f2937;
+  padding:10px;
+  margin-bottom:8px;
+  border-radius:6px;
+  word-break:break-word;
+}
+input[type="file"]{
+  display:none;
+}
+</style>
+</head>
+<body>
+
+<h1>Gerenciador de Arquivos</h1>
+<button onclick="limparCache()">Limpar Cache e Recarregar</button>
+<button onclick="document.getElementById('filePicker').click()">Escolher Arquivos</button>
+<input type="file" id="filePicker" multiple>
+
+<div id="arquivos"></div>
+
+<script>
+// ======== LIMPAR CACHE ========
+function limparCache(){
+  const scripts = document.querySelectorAll('script[src]');
+  scripts.forEach(s => { s.src = s.src.split('?')[0] + '?v=' + new Date().getTime(); });
+  const links = document.querySelectorAll('link[rel="stylesheet"]');
+  links.forEach(l => { l.href = l.href.split('?')[0] + '?v=' + new Date().getTime(); });
+  const imgs = document.querySelectorAll('img');
+  imgs.forEach(i => { i.src = i.src.split('?')[0] + '?v=' + new Date().getTime(); });
+  window.location.reload();
+}
+
+// ======== ARMAZENAR ARQUIVOS ========
+const fileInput = document.getElementById('filePicker');
+const container = document.getElementById('arquivos');
+
+// Carregar arquivos salvos ao iniciar
+window.addEventListener('load', ()=>{
+  const salvos = JSON.parse(localStorage.getItem('meus_arquivos')||'[]');
+  salvos.forEach(f => adicionarArquivo(f));
+});
+
+// Quando usuário escolhe arquivos
+fileInput.addEventListener('change', e=>{
+  const files = Array.from(e.target.files);
+  files.forEach(file=>{
+    const reader = new FileReader();
+    reader.onload = ()=>{
+      const arquivo = {nome:file.name, data:reader.result};
+      salvarArquivo(arquivo);
+      adicionarArquivo(arquivo);
+    };
+    reader.readAsDataURL(file);
+  });
+  fileInput.value = '';
+});
+
+// Adicionar visualização na tela
+function adicionarArquivo(file){
+  const div = document.createElement('div');
+  div.className='arquivo';
+  div.innerHTML=`<strong>${file.nome}</strong> <button onclick="baixarArquivo('${file.nome}')">Baixar</button>`;
+  container.appendChild(div);
+}
+
+// Salvar no localStorage
+function salvarArquivo(file){
+  const salvos = JSON.parse(localStorage.getItem('meus_arquivos')||'[]');
+  salvos.push(file);
+  localStorage.setItem('meus_arquivos', JSON.stringify(salvos));
+}
+
+// Baixar arquivo
+function baixarArquivo(nome){
+  const salvos = JSON.parse(localStorage.getItem('meus_arquivos')||'[]');
+  const arquivo = salvos.find(f=>f.nome===nome);
+  if(!arquivo) return;
+  const a = document.createElement('a');
+  a.href = arquivo.data;
+  a.download = arquivo.nome;
+  a.click();
+}
+</script>
+
+</body>
+</html>
