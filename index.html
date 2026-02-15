@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Galeria de Fotos</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body {
+  margin: 0;
+  font-family: Arial, Helvetica, sans-serif;
+  background: #0f0f14;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+h1 {
+  margin-bottom: 20px;
+}
+input[type="file"] {
+  margin-bottom: 20px;
+}
+#galeria {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+}
+#galeria img {
+  width: 150px;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 2px solid #22c55e;
+  cursor: pointer;
+}
+button {
+  margin-top: 15px;
+  padding: 10px 20px;
+  font-size: 14px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  background: #22c55e;
+  color: #000;
+  font-weight: bold;
+}
+button:hover {
+  background: #16a34a;
+}
+/* Estilo para tela cheia */
+#overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.95);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+#overlay img {
+  max-width: 95%;
+  max-height: 95%;
+  border-radius: 10px;
+}
+#overlay span {
+  position: absolute;
+  top: 20px;
+  right: 30px;
+  font-size: 30px;
+  cursor: pointer;
+  color: #fff;
+  font-weight: bold;
+}
+</style>
+</head>
+<body>
+
+<h1>Galeria de Fotos</h1>
+<input type="file" id="arquivo" accept="image/*" multiple>
+<button onclick="limparGaleria()">Limpar Galeria</button>
+
+<div id="galeria"></div>
+
+<div id="overlay">
+  <span onclick="fecharOverlay()">×</span>
+  <img id="fullImg" src="">
+</div>
+
+<script>
+const galeria = document.getElementById("galeria");
+const input = document.getElementById("arquivo");
+const overlay = document.getElementById("overlay");
+const fullImg = document.getElementById("fullImg");
+
+// Carregar imagens do localStorage ao abrir
+window.addEventListener("load", ()=>{
+  const fotos = JSON.parse(localStorage.getItem("fotos") || "[]");
+  fotos.forEach(src => adicionarImagem(src));
+});
+
+input.addEventListener("change", e => {
+  const files = Array.from(e.target.files);
+  files.forEach(file => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const src = reader.result;
+      adicionarImagem(src);
+      salvarFoto(src);
+    };
+    reader.readAsDataURL(file);
+  });
+  input.value = "";
+});
+
+function adicionarImagem(src){
+  const img = document.createElement("img");
+  img.src = src;
+  img.addEventListener("click", ()=>abrirOverlay(src));
+  galeria.appendChild(img);
+}
+
+function salvarFoto(src){
+  const fotos = JSON.parse(localStorage.getItem("fotos") || "[]");
+  fotos.push(src);
+  localStorage.setItem("fotos", JSON.stringify(fotos));
+}
+
+function limparGaleria(){
+  localStorage.removeItem("fotos");
+  galeria.innerHTML = "";
+}
+
+// Função para tela cheia
+function abrirOverlay(src){
+  fullImg.src = src;
+  overlay.style.display = "flex";
+}
+
+function fecharOverlay(){
+  overlay.style.display = "none";
+  fullImg.src = "";
+}
+</script>
+
+</body>
+</html>
