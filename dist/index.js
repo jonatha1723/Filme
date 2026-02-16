@@ -505,8 +505,8 @@ function getQueryParam(req, key) {
   const value = req.query[key];
   return typeof value === "string" ? value : void 0;
 }
-function registerOAuthRoutes(app) {
-  app.get("/api/oauth/callback", async (req, res) => {
+function registerOAuthRoutes(app2) {
+  app2.get("/api/oauth/callback", async (req, res) => {
     const code = getQueryParam(req, "code");
     const state = getQueryParam(req, "state");
     if (!code || !state) {
@@ -1052,16 +1052,16 @@ var vite_config_default = defineConfig({
   plugins,
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
-      "@shared": path.resolve(import.meta.dirname, "shared"),
-      "@assets": path.resolve(import.meta.dirname, "attached_assets")
+      "@": path.resolve(PROJECT_ROOT, "client", "src"),
+      "@shared": path.resolve(PROJECT_ROOT, "shared"),
+      "@assets": path.resolve(PROJECT_ROOT, "attached_assets")
     }
   },
-  envDir: path.resolve(import.meta.dirname),
-  root: path.resolve(import.meta.dirname, "client"),
-  publicDir: path.resolve(import.meta.dirname, "client", "public"),
+  root: path.resolve(PROJECT_ROOT, "client"),
+  envDir: PROJECT_ROOT,
+  publicDir: path.resolve(PROJECT_ROOT, "client", "public"),
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    outDir: path.resolve(PROJECT_ROOT, "dist/public"),
     emptyOutDir: true
   },
   server: {
@@ -1083,7 +1083,7 @@ var vite_config_default = defineConfig({
 });
 
 // server/_core/vite.ts
-async function setupVite(app, server) {
+async function setupVite(app2, server) {
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
@@ -1095,8 +1095,8 @@ async function setupVite(app, server) {
     server: serverOptions,
     appType: "custom"
   });
-  app.use(vite.middlewares);
-  app.use("*", async (req, res, next) => {
+  app2.use(vite.middlewares);
+  app2.use("*", async (req, res, next) => {
     const url = req.originalUrl;
     try {
       const clientTemplate = path2.resolve(
@@ -1118,15 +1118,15 @@ async function setupVite(app, server) {
     }
   });
 }
-function serveStatic(app) {
+function serveStatic(app2) {
   const distPath = process.env.NODE_ENV === "development" ? path2.resolve(import.meta.dirname, "../..", "dist", "public") : path2.resolve(import.meta.dirname, "public");
   if (!fs2.existsSync(distPath)) {
     console.error(
       `Could not find the build directory: ${distPath}, make sure to build the client first`
     );
   }
-  app.use(express.static(distPath));
-  app.use("*", (_req, res) => {
+  app2.use(express.static(distPath));
+  app2.use("*", (_req, res) => {
     res.sendFile(path2.resolve(distPath, "index.html"));
   });
 }
@@ -1149,8 +1149,9 @@ async function findAvailablePort(startPort = 3e3) {
   }
   throw new Error(`No available port found starting from ${startPort}`);
 }
+var app = express2();
+var index_default = app;
 async function startServer() {
-  const app = express2();
   const server = createServer(app);
   app.use(express2.json({ limit: "50mb" }));
   app.use(express2.urlencoded({ limit: "50mb", extended: true }));
@@ -1177,3 +1178,6 @@ async function startServer() {
   });
 }
 startServer().catch(console.error);
+export {
+  index_default as default
+};

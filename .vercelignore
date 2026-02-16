@@ -9,7 +9,6 @@ todo.md
 node_modules
 .pnpm-store
 .vite
-dist
 .turbo
 coverage
 .nyc_output
@@ -24,7 +23,6 @@ coverage
 .prettierignore
 .prettierrc*
 tsconfig.json
-vite.config.ts
 vitest.config.ts
 server/**/*.test.ts
 client/**/*.test.ts
