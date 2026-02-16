@@ -2,37 +2,26 @@
   "buildCommand": "pnpm build",
   "devCommand": "pnpm dev",
   "installCommand": "pnpm install --frozen-lockfile",
-  "framework": "vite",
+  "framework": null,
   "outputDirectory": "dist",
   "env": {
     "NODE_ENV": "production"
   },
-  "functions": {
-    "server/_core/index.ts": {
-      "runtime": "nodejs18.x",
-      "memory": 1024,
-      "maxDuration": 60
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "/api/$1"
+      "destination": "/api"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
     }
   ],
-  "headers": [
+  "routes": [
     {
-      "source": "/(.*)",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=3600, s-maxage=3600"
-        }
-      ]
+      "src": "/(.*)",
+      "dest": "dist/index.js",
+      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "HEAD", "OPTIONS"]
     }
   ]
 }
