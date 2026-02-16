@@ -78,181 +78,164 @@ export default function Home() {
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Game Modes */}
-          <div className="lg:col-span-2 space-y-4">
-            <h2 className="text-2xl font-bold text-white mb-4">Selecione um Modo</h2>
+          <div className="lg:col-span-2 space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+                <Gamepad2 className="w-6 h-6" />
+                Selecione um Modo
+              </h2>
 
-            {/* 1v1 Mode */}
-            <Card
-              className={`cursor-pointer transition-all ${
-                selectedMode === "1v1"
-                  ? "bg-blue-600 border-blue-400"
-                  : "bg-slate-800 border-slate-700 hover:border-blue-500"
-              }`}
-              onClick={() => setSelectedMode("1v1")}
-            >
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Crosshair className="w-6 h-6 text-blue-400" />
-                  <div>
-                    <CardTitle className="text-white">1v1 Duelo</CardTitle>
-                    <CardDescription className="text-slate-400">
-                      Combate direto entre dois jogadores
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-slate-300 mb-4">
-                  Primeiro a 10 kills vence. Mapa compacto para ação rápida.
-                </p>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleJoinQueue("1v1");
-                  }}
-                  disabled={isJoiningQueue}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  {isJoiningQueue ? <Loader2 className="animate-spin mr-2 w-4 h-4" /> : null}
-                  Entrar na Fila
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* 3v3 Mode */}
-            <Card
-              className={`cursor-pointer transition-all ${
-                selectedMode === "3v3"
-                  ? "bg-blue-600 border-blue-400"
-                  : "bg-slate-800 border-slate-700 hover:border-blue-500"
-              }`}
-              onClick={() => setSelectedMode("3v3")}
-            >
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Users className="w-6 h-6 text-blue-400" />
-                  <div>
-                    <CardTitle className="text-white">3v3 Equipes</CardTitle>
-                    <CardDescription className="text-slate-400">
-                      Batalha em equipes de três jogadores
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-slate-300 mb-4">
-                  Primeiro time a 20 kills vence. Trabalho em equipe é essencial.
-                </p>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleJoinQueue("3v3");
-                  }}
-                  disabled={isJoiningQueue}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  {isJoiningQueue ? <Loader2 className="animate-spin mr-2 w-4 h-4" /> : null}
-                  Entrar na Fila
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Training Mode */}
-            <Card
-              className={`cursor-pointer transition-all ${
-                selectedMode === "training"
-                  ? "bg-blue-600 border-blue-400"
-                  : "bg-slate-800 border-slate-700 hover:border-blue-500"
-              }`}
-              onClick={() => setSelectedMode("training")}
-            >
-              <CardHeader>
-                <div className="flex items-center gap-3">
-                  <Gamepad2 className="w-6 h-6 text-blue-400" />
-                  <div>
-                    <CardTitle className="text-white">Treinamento</CardTitle>
-                    <CardDescription className="text-slate-400">
-                      Pratique suas habilidades sozinho
-                    </CardDescription>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <p className="text-slate-300 mb-4">
-                  Ambiente solo com alvos estáticos e móveis. Sem limite de tempo.
-                </p>
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleJoinQueue("training");
-                  }}
-                  disabled={isJoiningQueue}
-                  className="w-full bg-green-600 hover:bg-green-700"
-                >
-                  {isJoiningQueue ? <Loader2 className="animate-spin mr-2 w-4 h-4" /> : null}
-                  Começar Treinamento
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-4">
-            {/* Player Stats */}
-            {getStatsQuery.data && (
-              <Card className="bg-slate-800 border-slate-700">
+              {/* 1v1 Mode */}
+              <Card className="bg-slate-800 border-slate-700 hover:border-blue-500 transition cursor-pointer"
+                onClick={() => setSelectedMode("1v1")}>
                 <CardHeader>
-                  <CardTitle className="text-white flex items-center gap-2">
-                    <Trophy className="w-5 h-5 text-yellow-500" />
-                    Suas Estatísticas
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between text-slate-300">
-                    <span>Kills:</span>
-                    <span className="font-bold text-green-400">{getStatsQuery.data.totalKills}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-300">
-                    <span>Deaths:</span>
-                    <span className="font-bold text-red-400">{getStatsQuery.data.totalDeaths}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-300">
-                    <span>K/D Ratio:</span>
-                    <span className="font-bold text-blue-400">{getStatsQuery.data.kdRatio.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-300">
-                    <span>Vitórias:</span>
-                    <span className="font-bold text-green-400">{getStatsQuery.data.totalWins}</span>
-                  </div>
-                  <div className="flex justify-between text-slate-300">
-                    <span>Taxa de Vitória:</span>
-                    <span className="font-bold text-blue-400">{getStatsQuery.data.winRate.toFixed(1)}%</span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Top Rankings */}
-            {getRankingsQuery.data && getRankingsQuery.data.length > 0 && (
-              <Card className="bg-slate-800 border-slate-700">
-                <CardHeader>
-                  <CardTitle className="text-white">Top 10 Jogadores</CardTitle>
+                  <CardTitle className="text-xl text-blue-400">1v1 Duelo</CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Combate direto entre dois jogadores
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  <p className="text-slate-300 mb-4">
+                    Primeiro a 10 kills vence. Mapa compacto para ação rápida.
+                  </p>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleJoinQueue("1v1");
+                    }}
+                    disabled={isJoiningQueue}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {isJoiningQueue ? <Loader2 className="animate-spin mr-2" /> : null}
+                    Entrar na Fila
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* 3v3 Mode */}
+              <Card className="bg-slate-800 border-slate-700 hover:border-blue-500 transition cursor-pointer"
+                onClick={() => setSelectedMode("3v3")}>
+                <CardHeader>
+                  <CardTitle className="text-xl text-blue-400 flex items-center gap-2">
+                    <Users className="w-5 h-5" />
+                    3v3 Equipes
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Batalha em equipes de três jogadores
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-slate-300 mb-4">
+                    Primeiro time a 20 kills vence. Trabalho em equipe é essencial.
+                  </p>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleJoinQueue("3v3");
+                    }}
+                    disabled={isJoiningQueue}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {isJoiningQueue ? <Loader2 className="animate-spin mr-2" /> : null}
+                    Entrar na Fila
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Training Mode */}
+              <Card className="bg-slate-800 border-slate-700 hover:border-blue-500 transition cursor-pointer"
+                onClick={() => setSelectedMode("training")}>
+                <CardHeader>
+                  <CardTitle className="text-xl text-blue-400 flex items-center gap-2">
+                    <Crosshair className="w-5 h-5" />
+                    Treinamento
+                  </CardTitle>
+                  <CardDescription className="text-slate-400">
+                    Pratique suas habilidades sozinho
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-slate-300 mb-4">
+                    Ambiente solo com alvos estáticos e móveis. Sem limite de tempo.
+                  </p>
+                  <Button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleJoinQueue("training");
+                    }}
+                    disabled={isJoiningQueue}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {isJoiningQueue ? <Loader2 className="animate-spin mr-2" /> : null}
+                    Começar Treinamento
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+
+          {/* Stats Sidebar */}
+          <div className="space-y-6">
+            {/* Player Stats */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-lg text-blue-400 flex items-center gap-2">
+                  <Trophy className="w-5 h-5" />
+                  Suas Estatísticas
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {getStatsQuery.isLoading ? (
+                  <Loader2 className="animate-spin w-5 h-5 text-blue-500" />
+                ) : getStatsQuery.data ? (
+                  <>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Kills:</span>
+                      <span className="text-green-400 font-bold">{getStatsQuery.data.totalKills}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Deaths:</span>
+                      <span className="text-red-400 font-bold">{getStatsQuery.data.totalDeaths}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">K/D Ratio:</span>
+                      <span className="text-blue-400 font-bold">{getStatsQuery.data.kdRatio.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Vitórias:</span>
+                      <span className="text-yellow-400 font-bold">{getStatsQuery.data.totalWins}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-slate-400">Taxa de Vitória:</span>
+                      <span className="text-yellow-400 font-bold">{(getStatsQuery.data.winRate * 100).toFixed(1)}%</span>
+                    </div>
+                  </>
+                ) : null}
+              </CardContent>
+            </Card>
+
+            {/* Top 10 Rankings */}
+            <Card className="bg-slate-800 border-slate-700">
+              <CardHeader>
+                <CardTitle className="text-lg text-blue-400">Top 10 Jogadores</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {getRankingsQuery.isLoading ? (
+                  <Loader2 className="animate-spin w-5 h-5 text-blue-500" />
+                ) : getRankingsQuery.data && getRankingsQuery.data.length > 0 ? (
                   <div className="space-y-2">
-                    {getRankingsQuery.data.slice(0, 5).map((ranking, idx) => (
-                      <div key={idx} className="flex justify-between items-center text-sm">
-                        <div className="flex items-center gap-2">
-                          <span className="text-yellow-500 font-bold w-6">{idx + 1}.</span>
-                          <span className="text-slate-300">{ranking.user.name}</span>
-                        </div>
-                        <span className="text-blue-400 font-bold">{ranking.stats.kdRatio.toFixed(2)}</span>
+                    {getRankingsQuery.data.map((player, index) => (
+                      <div key={player.userId} className="flex justify-between text-sm">
+                        <span className="text-slate-400">#{index + 1} {player.name}</span>
+                        <span className="text-blue-400 font-bold">{player.kdRatio.toFixed(2)}</span>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-            )}
+                ) : (
+                  <p className="text-slate-400 text-sm">Nenhum jogador ainda</p>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
