@@ -7,14 +7,19 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import GoogleLogin from "./pages/GoogleLogin";
 import Lobby from "./pages/Lobby";
 import GameArena from "./pages/GameArena";
+import MobileGameArena from "./pages/MobileGameArena";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
+  const isMobile = window.innerWidth < 768;
+
   return (
     <Switch>
       <Route path="/login" component={GoogleLogin} />
       <Route path="/lobby" component={Lobby} />
-      <Route path="/game" component={GameArena} />
+      <Route path="/game">
+        {isMobile ? <MobileGameArena /> : <GameArena />}
+      </Route>
       <Route path="/404" component={NotFound} />
       {/* Redirect to login by default */}
       <Route path="/" component={GoogleLogin} />
