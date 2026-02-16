@@ -1,6 +1,6 @@
+import type { VercelRequest, VercelResponse } from "@vercel/node";
 import "dotenv/config";
 import express from "express";
-import { createServer } from "http";
 import path from "node:path";
 import fs from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -8,7 +8,6 @@ import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { appRouter } from "../server/routers";
 import { createContext } from "../server/_core/context";
 import { registerOAuthRoutes } from "../server/_core/oauth";
-import serveStatic from "serve-static";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -31,7 +30,7 @@ app.use(
   })
 );
 
-// Serve static files
+// Serve static files from dist/public
 const distPublicPath = path.join(__dirname, "../dist/public");
 if (fs.existsSync(distPublicPath)) {
   app.use(express.static(distPublicPath));
@@ -43,7 +42,7 @@ app.get("*", (req, res) => {
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(404).send("Not found");
+    res.status(404).json({ error: "Not found" });
   }
 });
 
