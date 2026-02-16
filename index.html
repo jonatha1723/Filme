@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Linkvertise Teste</title>
+</head>
+<body>
+    <h1>Teste Linkvertise com Vídeo Interno</h1>
+    <p>Clique no botão abaixo para acessar o link monetizado:</p>
+
+    <!-- Botão de link monetizado -->
+    <button id="linkvertiseBtn">Abrir Link</button>
+
+    <!-- Script principal do Linkvertise -->
+    <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script>
+    <script>
+        // Inicializa o Linkvertise com seu ID de publisher
+        // whitelist: [] → permite todos, blacklist: [] → bloqueia ninguém
+        linkvertise(1402236, {whitelist: [], blacklist: []});
+
+        // Exemplo de como associar o fluxo a um botão
+        const btn = document.getElementById('linkvertiseBtn');
+        btn.addEventListener('click', () => {
+            // Abre o fluxo de Linkvertise dentro do site
+            // O usuário verá o vídeo/anúncio na própria página
+            linkvertise.open(1402236, "https://seu-destino-final.com");
+        });
+    </script>
+
+    <p>Após o vídeo/anúncio, o visitante será redirecionado para o link final.</p>
+</body>
+</html>
