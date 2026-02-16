@@ -53,8 +53,8 @@ export class MultiplayerSync {
     this.userName = userName;
 
     // Initialize Supabase client
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "";
-    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || "https://uonfrjjuhnrjewxzmuqc.supabase.co";
+    const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVvbmZyamp1aG5yamV3eHptdXFjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzA1MDU4NzUsImV4cCI6MjA4NjA4MTg3NX0.OXVl1AXeM1-mYION0Y3_oRWVyLvY6CJsR4Sz9p7Ghqo";
     this.supabase = createClient(supabaseUrl, supabaseKey);
   }
 

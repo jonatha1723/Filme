@@ -4,7 +4,7 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import GoogleLogin from "./pages/GoogleLogin";
+import FirebaseLogin from "./pages/FirebaseLogin";
 import Lobby from "./pages/Lobby";
 import GameArena from "./pages/GameArena";
 import MobileGameArena from "./pages/MobileGameArena";
@@ -15,14 +15,14 @@ function Router() {
 
   return (
     <Switch>
-      <Route path="/login" component={GoogleLogin} />
+      <Route path="/login" component={FirebaseLogin} />
       <Route path="/lobby" component={Lobby} />
       <Route path="/game">
         {isMobile ? <MobileGameArena /> : <GameArena />}
       </Route>
       <Route path="/404" component={NotFound} />
       {/* Redirect to login by default */}
-      <Route path="/" component={GoogleLogin} />
+      <Route path="/" component={FirebaseLogin} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>

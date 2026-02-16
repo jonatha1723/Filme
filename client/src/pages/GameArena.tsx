@@ -14,7 +14,8 @@ interface GameArenaProps {
 }
 
 export default function GameArena({ matchId }: GameArenaProps) {
-  const { user } = useAuth();
+  const auth = useAuth();
+  const user = auth.user || JSON.parse(localStorage.getItem('user') || 'null');
   const [, navigate] = useLocation();
   const containerRef = useRef<HTMLDivElement>(null);
   const gameEngineRef = useRef<GameEngine | null>(null);

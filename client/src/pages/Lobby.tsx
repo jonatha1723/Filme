@@ -21,8 +21,13 @@ export default function Lobby() {
     // Check if user is logged in
     const userData = localStorage.getItem('user');
     if (!userData) {
-      setLocation('/login');
-      return;
+      // Small delay to allow Firebase to initialize and check auth state
+      const timeout = setTimeout(() => {
+        if (!localStorage.getItem('user')) {
+          setLocation('/login');
+        }
+      }, 1000);
+      return () => clearTimeout(timeout);
     }
     setUser(JSON.parse(userData));
   }, [setLocation]);
