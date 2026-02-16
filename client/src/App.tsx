@@ -5,6 +5,8 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import Login from "./pages/Login";
+import GameRooms from "./pages/GameRooms";
 import WaitingRoom from "./pages/WaitingRoom";
 import GameArena from "./pages/GameArena";
 
@@ -12,14 +14,16 @@ function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path={"/"} component={Home} />
-      <Route path={"/waiting/:mode"}>
+      <Route path="/login" component={Login} />
+      <Route path="/" component={Home} />
+      <Route path="/rooms" component={GameRooms} />
+      <Route path="/waiting/:mode">
         {(params: any) => <WaitingRoom mode={params.mode} />}
       </Route>
-      <Route path={"/game/:matchId"}>
+      <Route path="/game/:matchId">
         {(params: any) => <GameArena matchId={parseInt(params.matchId)} />}
       </Route>
-      <Route path={"/404"} component={NotFound} />
+      <Route path="/404" component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
