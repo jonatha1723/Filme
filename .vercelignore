@@ -1,0 +1,13 @@
+.git
+.gitignore
+README.md
+todo.md
+.env.local
+.env.*.local
+*.log
+node_modules
+.pnpm-store
+.vite
+dist
+.turbo
+coverage
