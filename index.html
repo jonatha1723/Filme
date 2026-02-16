@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Linkvertise</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@3.3.3/dist/tailwind.min.css" rel="stylesheet">
+
+    <!-- Script oficial Linkvertise -->
+    <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script>
+    <script>
+        // Inicializa Linkvertise com seu ID
+        // whitelist vazia para garantir que o anúncio apareça para todos os links
+        linkvertise(1402236, {whitelist: [], blacklist: []});
+    </script>
+</head>
+<body class="bg-gray-100 flex flex-col items-center justify-center min-h-screen p-4">
+
+    <div class="bg-white shadow-lg rounded-xl p-8 max-w-md w-full text-center">
+        <h1 class="text-2xl font-bold mb-4">Teste Monetização Linkvertise</h1>
+        <p class="mb-6 text-gray-600">
+            Clique no botão abaixo para acessar o link. Você verá o anúncio dentro do site antes de ser redirecionado.
+        </p>
+
+        <button id="linkvertiseBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200">
+            Abrir Link Monetizado
+        </button>
+
+        <p class="mt-4 text-sm text-gray-500">
+            Após assistir ou interagir com o anúncio, você será redirecionado automaticamente.
+        </p>
+    </div>
+
+    <script>
+        const btn = document.getElementById("linkvertiseBtn");
+
+        btn.addEventListener("click", () => {
+            // Link externo monetizado criado no painel Linkvertise
+            // O anúncio será exibido dentro do site
+            linkvertise.open(1402236, "https://exemplo-externo.com/");
+        });
+    </script>
+
+</body>
+</html>
