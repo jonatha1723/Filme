@@ -4,26 +4,20 @@ import NotFound from "@/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import GameRooms from "./pages/GameRooms";
-import WaitingRoom from "./pages/WaitingRoom";
+import GoogleLogin from "./pages/GoogleLogin";
+import Lobby from "./pages/Lobby";
 import GameArena from "./pages/GameArena";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
   return (
     <Switch>
-      <Route path="/login" component={Login} />
-      <Route path="/" component={Home} />
-      <Route path="/rooms" component={GameRooms} />
-      <Route path="/waiting/:mode">
-        {(params: any) => <WaitingRoom mode={params.mode} />}
-      </Route>
-      <Route path="/game/:matchId">
-        {(params: any) => <GameArena matchId={parseInt(params.matchId)} />}
-      </Route>
+      <Route path="/login" component={GoogleLogin} />
+      <Route path="/lobby" component={Lobby} />
+      <Route path="/game" component={GameArena} />
       <Route path="/404" component={NotFound} />
+      {/* Redirect to login by default */}
+      <Route path="/" component={GoogleLogin} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>
