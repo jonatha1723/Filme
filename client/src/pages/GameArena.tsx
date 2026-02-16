@@ -10,10 +10,12 @@ import { MultiplayerSync, PlayerState } from "@/lib/MultiplayerSync";
 import * as THREE from "three";
 
 interface GameArenaProps {
-  matchId: number;
+  matchId?: number;
 }
 
-export default function GameArena({ matchId }: GameArenaProps) {
+export default function GameArena({ matchId }: GameArenaProps = {}) {
+  // Generate a temporary match ID if not provided
+  const effectiveMatchId = matchId || Math.floor(Math.random() * 1000000);
   const auth = useAuth();
   const user = auth.user || JSON.parse(localStorage.getItem('user') || 'null');
   const [, navigate] = useLocation();
@@ -50,7 +52,7 @@ export default function GameArena({ matchId }: GameArenaProps) {
         engine.initializeLocalPlayer(user.id, user.name || "Player", new THREE.Vector3(0, 5, 0));
 
         // Initialize multiplayer sync
-        const sync = new MultiplayerSync(matchId, user.id, user.name || "Player");
+        const sync = new MultiplayerSync(effectiveMatchId, user.id, user.name || "Player");
         multiplayerRef.current = sync;
 
         // Setup multiplayer callbacks
@@ -90,8 +92,13 @@ export default function GameArena({ matchId }: GameArenaProps) {
           }
         });
 
-        // Connect to multiplayer
-        await sync.connect();
+        // Connect to multiplayer (with error handling)
+        try {
+          await sync.connect();
+        } catch (error) {
+          console.warn('Multiplayer connection failed, continuing in offline mode:', error);
+          // Continue anyway - game can work in offline mode
+        }
 
         // Game loop
         const gameLoop = () => {
@@ -148,7 +155,10 @@ export default function GameArena({ matchId }: GameArenaProps) {
       }
     };
 
-    initializeGame();
+    initializeGame().catch(err => {
+      console.error('Game initialization error:', err);
+      setIsLoading(false);
+    });
 
     return () => {
       if (animationFrameRef.current !== undefined) {

@@ -8,6 +8,8 @@ import FirebaseLogin from "./pages/FirebaseLogin";
 import Lobby from "./pages/Lobby";
 import GameArena from "./pages/GameArena";
 import MobileGameArena from "./pages/MobileGameArena";
+import TrainingMode from "./pages/TrainingMode";
+import WaitingRoom from "./pages/WaitingRoom";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -20,9 +22,18 @@ function Router() {
       <Route path="/game">
         {isMobile ? <MobileGameArena /> : <GameArena />}
       </Route>
+      <Route path="/game?mode=training" component={TrainingMode} />
+      <Route path="/training" component={TrainingMode} />
+      <Route path="/waiting">
+        {() => {
+          const params = new URLSearchParams(window.location.search);
+          const mode = params.get('mode') as '1v1' | '3v3' | 'training' || '1v1';
+          return <WaitingRoom mode={mode} />;
+        }}
+      </Route>
       <Route path="/404" component={NotFound} />
-      {/* Redirect to login by default */}
-      <Route path="/" component={FirebaseLogin} />
+      {/* Redirect to lobby by default (guest mode) */}
+      <Route path="/" component={Lobby} />
       {/* Final fallback route */}
       <Route component={NotFound} />
     </Switch>

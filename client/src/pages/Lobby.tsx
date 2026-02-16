@@ -21,27 +21,44 @@ export default function Lobby() {
     // Check if user is logged in
     const userData = localStorage.getItem('user');
     if (!userData) {
-      // Small delay to allow Firebase to initialize and check auth state
-      const timeout = setTimeout(() => {
-        if (!localStorage.getItem('user')) {
-          setLocation('/login');
-        }
-      }, 1000);
-      return () => clearTimeout(timeout);
+      // Create guest user
+      const guestUser: User = {
+        id: `guest_${Date.now()}`,
+        email: 'guest@doublefps.com',
+        name: 'Visitante',
+        picture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=guest',
+        token: '',
+      };
+      localStorage.setItem('user', JSON.stringify(guestUser));
+      setUser(guestUser);
+    } else {
+      setUser(JSON.parse(userData));
     }
-    setUser(JSON.parse(userData));
   }, [setLocation]);
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    setLocation('/login');
+    if (user?.id.startsWith('guest_')) {
+      // Guest user - just clear and reload
+      localStorage.removeItem('user');
+      window.location.reload();
+    } else {
+      // Logged in user - go to login
+      localStorage.removeItem('user');
+      setLocation('/login');
+    }
   };
 
   const handleSelectMode = (mode: string) => {
     setSelectedMode(mode);
-    // Navigate to game with selected mode
+    // Navigate based on mode
     setTimeout(() => {
-      setLocation(`/game?mode=${mode}`);
+      if (mode === 'training') {
+        // Training mode: direct entry, no waiting
+        setLocation(`/training`);
+      } else {
+        // Multiplayer modes: go to waiting room
+        setLocation(`/waiting?mode=${mode}`);
+      }
     }, 300);
   };
 
@@ -80,15 +97,26 @@ export default function Lobby() {
                 <p className="text-slate-400 text-xs">{user.email}</p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleLogout}
-              className="gap-2"
-            >
-              <LogOut className="w-4 h-4" />
-              Sair
-            </Button>
+            {user.id.startsWith('guest_') ? (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setLocation('/login')}
+                className="gap-2 border-green-500/50 text-green-400 hover:bg-green-500/20"
+              >
+                Fazer Login
+              </Button>
+            ) : (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </Button>
+            )}
           </div>
         </div>
       </header>
@@ -104,7 +132,7 @@ export default function Lobby() {
         </div>
 
         {/* Game Modes Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           {/* 5v5 with AI */}
           <Card
             className={`group cursor-pointer transition-all duration-300 border-2 ${
@@ -181,6 +209,46 @@ export default function Lobby() {
                 onClick={() => handleSelectMode('ranked')}
               >
                 Jogar Agora
+              </Button>
+            </div>
+          </Card>
+
+          {/* Training Mode */}
+          <Card
+            className={`group cursor-pointer transition-all duration-300 border-2 ${
+              selectedMode === 'training'
+                ? 'border-green-500 bg-green-500/10'
+                : 'border-white/10 hover:border-green-500/50 hover:bg-white/5'
+            }`}
+            onClick={() => handleSelectMode('training')}
+          >
+            <div className="p-8">
+              <div className="flex items-start justify-between mb-4">
+                <div className="text-5xl">🎯</div>
+                <Zap className="w-6 h-6 text-green-400" />
+              </div>
+
+              <h3 className="text-2xl font-black text-white mb-2">Treinamento</h3>
+              <p className="text-slate-400 text-sm mb-6">
+                Pratique suas habilidades sem pressão. Entrada instantânea, sem espera.
+              </p>
+
+              <div className="space-y-2 mb-6">
+                <div className="flex items-center gap-2 text-slate-300 text-sm">
+                  <Zap className="w-4 h-4 text-green-400" />
+                  <span>Modo Solo</span>
+                </div>
+                <div className="flex items-center gap-2 text-slate-300 text-sm">
+                  <Users className="w-4 h-4 text-green-400" />
+                  <span>Bots de Treino</span>
+                </div>
+              </div>
+
+              <Button
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
+                onClick={() => handleSelectMode('training')}
+              >
+                Treinar Agora
               </Button>
             </div>
           </Card>

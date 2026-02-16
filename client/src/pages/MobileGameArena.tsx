@@ -16,7 +16,7 @@ interface Player {
 }
 
 interface GameState {
-  mode: '5v5' | 'ranked';
+  mode: '5v5' | 'ranked' | 'training';
   status: 'waiting' | 'in_progress' | 'finished';
   players: Player[];
   teamAKills: number;
@@ -32,7 +32,7 @@ export default function MobileGameArena() {
   const animationIdRef = useRef<number | null>(null);
 
   const [gameState, setGameState] = useState<GameState>({
-    mode: new URLSearchParams(search).get('mode') as '5v5' | 'ranked',
+    mode: new URLSearchParams(search).get('mode') as '5v5' | 'ranked' | 'training' || 'training',
     status: 'waiting',
     players: [],
     teamAKills: 0,
@@ -51,8 +51,9 @@ export default function MobileGameArena() {
   useEffect(() => {
     if (!canvasRef.current) return;
 
-    const engine = new Mobile3DEngine(canvasRef.current);
-    engineRef.current = engine;
+    try {
+      const engine = new Mobile3DEngine(canvasRef.current);
+      engineRef.current = engine;
 
     // Add mock players
     const mockPlayers = generateMockPlayers(gameState.mode);
@@ -123,15 +124,18 @@ export default function MobileGameArena() {
       }));
     }, 1000);
 
-    return () => {
-      if (animationIdRef.current) {
-        cancelAnimationFrame(animationIdRef.current);
-      }
-      canvasRef.current?.removeEventListener('touchstart', handleTouchStart);
-      canvasRef.current?.removeEventListener('touchmove', handleTouchMove);
-      clearInterval(timerInterval);
-      engine.dispose();
-    };
+      return () => {
+        if (animationIdRef.current) {
+          cancelAnimationFrame(animationIdRef.current);
+        }
+        canvasRef.current?.removeEventListener('touchstart', handleTouchStart);
+        canvasRef.current?.removeEventListener('touchmove', handleTouchMove);
+        clearInterval(timerInterval);
+        engine.dispose();
+      };
+    } catch (error) {
+      console.error('Failed to initialize game engine:', error);
+    }
   }, []);
 
   const generateMockPlayers = (mode: '5v5' | 'ranked'): Player[] => {

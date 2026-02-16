@@ -33,8 +33,13 @@ export default function WaitingRoom({ mode }: WaitingRoomProps) {
   }, []);
 
   const handleLeaveQueue = async () => {
-    await leaveQueueMutation.mutateAsync();
-    navigate("/");
+    try {
+      await leaveQueueMutation.mutateAsync();
+      navigate("/lobby");
+    } catch (error) {
+      console.error('Error leaving queue:', error);
+      navigate("/lobby");
+    }
   };
 
   const formatTime = (seconds: number) => {
@@ -56,9 +61,27 @@ export default function WaitingRoom({ mode }: WaitingRoomProps) {
     }
   };
 
+  // Check if match is found and redirect
+  useEffect(() => {
+    if (getQueueStatusQuery.data?.matchFound) {
+      setTimeout(() => {
+        navigate(`/game?mode=${mode}`);
+      }, 2000);
+    }
+  }, [getQueueStatusQuery.data?.matchFound, mode, navigate]);
+
+  const requiredPlayers = mode === '1v1' ? 2 : mode === '3v3' ? 6 : 1;
+  const currentPlayers = getQueueStatusQuery.data?.playersWaiting || 1;
+  const progressPercentage = (currentPlayers / requiredPlayers) * 100;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 to-slate-950 p-4 flex items-center justify-center">
-      <div className="max-w-md w-full space-y-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 p-4 flex items-center justify-center">
+      {/* Background effects */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 left-0 w-96 h-96 bg-blue-500/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl animate-pulse"></div>
+      </div>
+      <div className="max-w-2xl w-full space-y-4 relative z-10">
         {/* Header */}
         <Button
           variant="ghost"
@@ -70,7 +93,7 @@ export default function WaitingRoom({ mode }: WaitingRoomProps) {
         </Button>
 
         {/* Main Card */}
-        <Card className="bg-slate-800 border-slate-700">
+        <Card className="bg-black/40 backdrop-blur-xl border-white/10">
           <CardHeader className="text-center">
             <CardTitle className="text-2xl text-white">Aguardando Oponentes</CardTitle>
           </CardHeader>
@@ -81,8 +104,22 @@ export default function WaitingRoom({ mode }: WaitingRoomProps) {
               <p className="text-2xl font-bold text-blue-400">{getModeLabel()}</p>
             </div>
 
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-white font-bold">{currentPlayers}/{requiredPlayers} Jogadores</span>
+                <span className="text-slate-400 text-sm">{formatTime(waitTime)}</span>
+              </div>
+              <div className="w-full h-3 bg-black/50 rounded-full overflow-hidden border border-white/10">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all duration-500"
+                  style={{ width: `${Math.min(progressPercentage, 100)}%` }}
+                />
+              </div>
+            </div>
+
             {/* Queue Status */}
-            <div className="bg-slate-700/50 rounded-lg p-4 space-y-3">
+            <div className="bg-white/5 rounded-lg p-4 space-y-3 border border-white/10">
               <div className="flex items-center justify-center">
                 <Loader2 className="animate-spin w-8 h-8 text-blue-500" />
               </div>

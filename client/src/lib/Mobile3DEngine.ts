@@ -8,6 +8,8 @@ export interface Player {
   mesh?: THREE.Mesh;
 }
 
+export type QualityLevel = 'low' | 'medium' | 'high';
+
 export class Mobile3DEngine {
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
@@ -16,6 +18,7 @@ export class Mobile3DEngine {
   private playerMesh: THREE.Mesh | null = null;
   private cameraController: CameraController;
   private lights: THREE.Light[] = [];
+  private qualityLevel: QualityLevel = 'medium';
 
   constructor(canvas: HTMLCanvasElement) {
     // Scene setup
@@ -32,15 +35,18 @@ export class Mobile3DEngine {
     );
     this.camera.position.set(0, 1.6, 0); // Eye level height
 
+    // Detect device capability and set quality
+    this.qualityLevel = this.detectQualityLevel();
+
     // Renderer setup - Optimized for mobile
     this.renderer = new THREE.WebGLRenderer({
       canvas,
-      antialias: false, // Disable for better mobile performance
-      powerPreference: 'low-power',
+      antialias: this.qualityLevel === 'high', // Only enable on high quality
+      powerPreference: this.qualityLevel === 'low' ? 'low-power' : 'default',
     });
     this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Limit pixel ratio
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.setPixelRatio(this.getPixelRatio());
+    this.renderer.shadowMap.enabled = this.qualityLevel !== 'low';
     this.renderer.shadowMap.type = THREE.PCFShadowMap;
 
     // Camera controller
@@ -197,6 +203,50 @@ export class Mobile3DEngine {
     this.camera.aspect = width / height;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height);
+  }
+
+  private detectQualityLevel(): QualityLevel {
+    // Check device memory (if available)
+    const memory = (navigator as any).deviceMemory;
+    const hardwareConcurrency = navigator.hardwareConcurrency || 2;
+    
+    // High-end device: 6GB+ RAM and 6+ cores
+    if (memory >= 6 && hardwareConcurrency >= 6) {
+      return 'high';
+    }
+    
+    // Low-end device: <4GB RAM or <4 cores
+    if (memory < 4 || hardwareConcurrency < 4) {
+      return 'low';
+    }
+    
+    // Default to medium
+    return 'medium';
+  }
+
+  private getPixelRatio(): number {
+    const dpr = window.devicePixelRatio || 1;
+    
+    switch (this.qualityLevel) {
+      case 'low':
+        return Math.min(dpr, 1);
+      case 'medium':
+        return Math.min(dpr, 1.5);
+      case 'high':
+        return Math.min(dpr, 2);
+      default:
+        return 1;
+    }
+  }
+
+  public setQualityLevel(level: QualityLevel) {
+    this.qualityLevel = level;
+    this.renderer.setPixelRatio(this.getPixelRatio());
+    this.renderer.shadowMap.enabled = level !== 'low';
+  }
+
+  public getQualityLevel(): QualityLevel {
+    return this.qualityLevel;
   }
 }
 

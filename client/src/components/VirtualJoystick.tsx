@@ -9,10 +9,20 @@ interface JoystickState {
 interface VirtualJoystickProps {
   onMove: (x: number, y: number) => void;
   onShoot: () => void;
+  onReload?: () => void;
+  onJump?: () => void;
   size?: number;
+  shootButtonSize?: number;
 }
 
-export default function VirtualJoystick({ onMove, onShoot, size = 100 }: VirtualJoystickProps) {
+export default function VirtualJoystick({ 
+  onMove, 
+  onShoot, 
+  onReload, 
+  onJump, 
+  size = 120, 
+  shootButtonSize = 80 
+}: VirtualJoystickProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const [joystickState, setJoystickState] = useState<JoystickState>({
     x: 0,
@@ -73,16 +83,17 @@ export default function VirtualJoystick({ onMove, onShoot, size = 100 }: Virtual
   };
 
   return (
-    <div className="fixed bottom-20 left-4 z-40">
+    <div className="fixed inset-0 pointer-events-none z-40">
       {/* Movement Joystick */}
-      <div
-        ref={containerRef}
-        className="relative bg-white/10 backdrop-blur-md rounded-full border-2 border-white/20"
-        style={{ width: size, height: size }}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-      >
+      <div className="absolute bottom-8 left-6 pointer-events-auto">
+        <div
+          ref={containerRef}
+          className="relative bg-white/10 backdrop-blur-md rounded-full border-2 border-white/20 shadow-xl"
+          style={{ width: size, height: size }}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+        >
         {/* Joystick Knob */}
         <div
           className="absolute top-1/2 left-1/2 w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full shadow-lg transition-all"
@@ -99,25 +110,40 @@ export default function VirtualJoystick({ onMove, onShoot, size = 100 }: Virtual
         </div>
       </div>
 
+      </div>
+
       {/* Shoot Button */}
-      <button
-        onClick={onShoot}
-        className="fixed bottom-20 right-4 w-16 h-16 rounded-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-2xl shadow-lg active:scale-95 transition-transform z-40 flex items-center justify-center"
-      >
-        🔫
-      </button>
+      <div className="absolute bottom-8 right-6 pointer-events-auto">
+        <button
+          onTouchStart={(e) => { e.preventDefault(); onShoot(); }}
+          className="rounded-full bg-gradient-to-br from-red-500 to-red-700 text-white font-bold text-3xl shadow-xl active:scale-95 transition-transform flex items-center justify-center"
+          style={{ width: shootButtonSize, height: shootButtonSize }}
+        >
+          🔫
+        </button>
+      </div>
 
       {/* Action Buttons */}
-      <div className="fixed bottom-4 right-4 flex gap-2 z-40">
+      <div className="absolute bottom-8 right-6 flex flex-col gap-3 pointer-events-auto" style={{ marginRight: shootButtonSize + 16 }}>
         {/* Reload */}
-        <button className="w-12 h-12 rounded-lg bg-yellow-500/80 hover:bg-yellow-600 text-white font-bold text-xs transition-colors flex items-center justify-center">
-          R
-        </button>
+        {onReload && (
+          <button 
+            onTouchStart={(e) => { e.preventDefault(); onReload(); }}
+            className="w-14 h-14 rounded-xl bg-yellow-500/90 active:bg-yellow-600 text-white font-bold text-sm shadow-lg active:scale-95 transition-all flex items-center justify-center"
+          >
+            R
+          </button>
+        )}
 
         {/* Jump */}
-        <button className="w-12 h-12 rounded-lg bg-green-500/80 hover:bg-green-600 text-white font-bold text-xs transition-colors flex items-center justify-center">
-          ⬆️
-        </button>
+        {onJump && (
+          <button 
+            onTouchStart={(e) => { e.preventDefault(); onJump(); }}
+            className="w-14 h-14 rounded-xl bg-green-500/90 active:bg-green-600 text-white font-bold text-xl shadow-lg active:scale-95 transition-all flex items-center justify-center"
+          >
+            ⬆️
+          </button>
+        )}
       </div>
     </div>
   );
