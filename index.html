@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Linkvertise</title>
+
+    <!-- Script oficial do Linkvertise -->
+    <script src="https://publisher.linkvertise.com/cdn/linkvertise.js"></script>
+    <script>
+        // Inicializa Linkvertise com seu ID de publisher
+        // whitelist: seu site para testes (não monetiza) 
+        // blacklist: vazio (todos os outros links monetizam)
+        linkvertise(1402236, {whitelist: ["https://doubleds.vercel.app/"], blacklist: []});
+    </script>
+</head>
+<body>
+    <h1>Teste Linkvertise com Vídeo/Ads</h1>
+    <p>Clique no botão abaixo para abrir o link monetizado via Linkvertise:</p>
+
+    <!-- Botão de link monetizado -->
+    <button id="linkvertiseBtn">Abrir Link Monetizado</button>
+
+    <script>
+        const btn = document.getElementById("linkvertiseBtn");
+
+        btn.addEventListener("click", () => {
+            // Aqui você define o link final que o usuário quer acessar
+            // Linkvertise exibirá o anúncio antes de redirecionar
+            linkvertise.open(1402236, "https://doubleds.vercel.app/");
+        });
+    </script>
+
+    <p>Após assistir ao vídeo ou interagir, o usuário será redirecionado para o link final.</p>
+
+</body>
+</html>
