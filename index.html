@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Abrir Download</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+body{
+    height:100vh;
+    background: radial-gradient(circle at top, #0f172a, #020617);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+.container{
+    text-align:center;
+}
+
+.open-btn{
+    padding:22px 70px;
+    font-size:18px;
+    font-weight:600;
+    color:#fff;
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+    border:none;
+    border-radius:16px;
+    cursor:pointer;
+    box-shadow: 0 20px 40px rgba(34,197,94,0.35);
+    transition: all .3s ease;
+    letter-spacing:1px;
+}
+
+.open-btn:hover{
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 30px 60px rgba(34,197,94,0.5);
+}
+
+.open-btn:active{
+    transform: scale(0.97);
+}
+
+.subtitle{
+    margin-top:14px;
+    font-size:12px;
+    color:#94a3b8;
+    letter-spacing:2px;
+    text-transform:uppercase;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+    <button class="open-btn" onclick="openLink()">
+        Abrir Download do APK
+    </button>
+    <div class="subtitle">Redirecionamento seguro</div>
+</div>
+
+<script>
+function openLink(){
+    window.open(
+        "https://www.mediafire.com/file/4b4098eyndcgfm1/Double_1.apk/file",
+        "_blank"
+    );
+}
+</script>
+
+</body>
+</html>
