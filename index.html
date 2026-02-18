@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Download ZIP</title>
+</head>
+<body>
+
+<button onclick="downloadZip()">Baixar ZIP</button>
+
+<script>
+function downloadZip() {
+    const url = "https://seusite.com/arquivo.zip"; // link do zip
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "arquivo.zip"; // nome final
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+</script>
+
+</body>
+</html>
