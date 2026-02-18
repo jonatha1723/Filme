@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Double Stream - Compartilhar Tela</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
+
+    <style>
+        /* CSS Otimizado para Celular */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+        body { background-color: #0f172a; color: #f8fafc; display: flex; justify-content: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 450px; padding: 20px; text-align: center; }
+        h1 { color: #38bdf8; font-size: 1.4rem; margin-bottom: 10px; }
+        #status { font-size: 0.85rem; color: #94a3b8; margin-bottom: 20px; background: #1e293b; padding: 8px; border-radius: 5px; }
+        
+        .video-wrapper { 
+            width: 100%; 
+            background: #000; 
+            border-radius: 15px; 
+            overflow: hidden; 
+            aspect-ratio: 9/16; 
+            margin-bottom: 20px; 
+            position: relative;
+            border: 1px solid #334155;
+        }
+        video { width: 100%; height: 100%; object-fit: contain; }
+        #localVideo { position: absolute; bottom: 10px; right: 10px; width: 25%; border: 2px solid #38bdf8; border-radius: 8px; }
+
+        .controls { display: flex; flex-direction: column; gap: 10px; }
+        input { padding: 15px; border-radius: 10px; border: 1px solid #334155; background: #1e293b; color: white; text-align: center; font-size: 1rem; }
+        button { padding: 15px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 1rem; }
+        
+        .btn-start { background-color: #38bdf8; color: #0f172a; }
+        .btn-join { background-color: #1e293b; color: #f8fafc; border: 1px solid #334155; }
+        .btn-stop { background-color: #ef4444; color: white; display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Double Screen Share</h1>
+    <div id="status">Aguardando configuração do Firebase...</div>
+
+    <div class="video-wrapper">
+        <video id="remoteVideo" autoplay playsinline></video>
+        <video id="localVideo" autoplay playsinline muted></video>
+    </div>
+
+    <div class="controls">
+        <input type="text" id="roomInput" placeholder="Nome da Sala">
+        <button id="startBtn" class="btn-start">Compartilhar Minha Tela</button>
+        <button id="joinBtn" class="btn-join">Entrar em uma Sala</button>
+        <button id="stopBtn" class="btn-stop">Parar Transmissão</button>
+    </div>
+</div>
+
+<script>
+    // IMPORTANTE: Insira aqui as chaves do seu projeto Firebase
+    const firebaseConfig = {
+        apiKey: "SUA_API_KEY",
+        authDomain: "SEU_PROJETO.firebaseapp.com",
+        databaseURL: "https://SEU_PROJETO.firebaseio.com",
+        projectId: "SEU_PROJETO",
+        storageBucket: "SEU_PROJETO.appspot.com",
+        messagingSenderId: "ID",
+        appId: "APP_ID"
+    };
+
+    // Inicializa o Firebase apenas se as chaves forem preenchidas
+    let db;
+    if (firebaseConfig.apiKey !== "SUA_API_KEY") {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.database();
+        document.getElementById('status').innerText = "Pronto para conectar";
+    } else {
+        document.getElementById('status').innerText = "Atenção: Adicione sua Firebase Config no código!";
+    }
+
+    const localVideo = document.getElementById('localVideo');
+    const remoteVideo = document.getElementById('remoteVideo');
+    const startBtn = document.getElementById('startBtn');
+    const joinBtn = document.getElementById('joinBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const roomInput = document.getElementById('roomInput');
+    const statusText = document.getElementById('status');
+
+    let localStream;
+    let peerConnection;
+    const servers = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
+
+    // --- LOGICA DE CAPTURA DE TELA ---
+    startBtn.onclick = async () => {
+        const roomId = roomInput.value;
+        if (!roomId || !db) return alert("Configure a sala e o Firebase primeiro!");
+
+        try {
+            // getDisplayMedia solicita a TELA do celular, não a câmera
+            localStream = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
+            localVideo.srcObject = localStream;
+
+            const roomRef = db.ref(`rooms/${roomId}`);
+            peerConnection = new RTCPeerConnection(servers);
+
+            localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+            peerConnection.onicecandidate = e => {
+                if (e.candidate) roomRef.child('callerCandidates').push(e.candidate.toJSON());
+            };
+
+            const offer = await peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
+            await roomRef.set({ offer: { type: offer.type, sdp: offer.sdp } });
+
+            roomRef.on('value', async snap => {
+                const data = snap.val();
+                if (!peerConnection.currentRemoteDescription && data?.answer) {
+                    await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+                }
+            });
+
+            roomRef.child('calleeCandidates').on('child_added', snap => {
+                peerConnection.addIceCandidate(new RTCIceCandidate(snap.val()));
+            });
+
+            toggleUI(true);
+            statusText.innerText = "Transmitindo tela...";
+        } catch (err) {
+            console.error(err);
+            alert("Erro ao compartilhar tela. Verifique as permissões de HTTPS.");
+        }
+    };
+
+    // --- LOGICA DE RECEBER STREAM ---
+    joinBtn.onclick = async () => {
+        const roomId = roomInput.value;
+        if (!roomId || !db) return alert("Configure a sala e o Firebase!");
+
+        const roomRef = db.ref(`rooms/${roomId}`);
+        const snap = await roomRef.once('value');
+        if (!snap.exists()) return alert("Sala não encontrada");
+
+        peerConnection = new RTCPeerConnection(servers);
+        peerConnection.ontrack = e => { remoteVideo.srcObject = e.streams[0]; };
+        
+        peerConnection.onicecandidate = e => {
+            if (e.candidate) roomRef.child('calleeCandidates').push(e.candidate.toJSON());
+        };
+
+        const data = snap.val();
+        await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
+        const answer = await peerConnection.createAnswer();
+        await peerConnection.setLocalDescription(answer);
+        await roomRef.update({ answer: { type: answer.type, sdp: answer.sdp } });
+
+        roomRef.child('callerCandidates').on('child_added', snap => {
+            peerConnection.addIceCandidate(new RTCIceCandidate(snap.val()));
+        });
+
+        statusText.innerText = "Conectado à sala!";
+    };
+
+    function toggleUI(streaming) {
+        startBtn.style.display = streaming ? 'none' : 'block';
+        joinBtn.style.display = streaming ? 'none' : 'block';
+        stopBtn.style.display = streaming ? 'block' : 'none';
+    }
+
+    stopBtn.onclick = () => location.reload();
+</script>
+
+</body>
+</html>
