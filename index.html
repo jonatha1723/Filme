@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>App WebView</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+/* Base */
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+    font-family: Arial, sans-serif;
+}
+
+/* App container */
+#app {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    inset: 0;
+}
+
+/* Conteúdo */
+#content {
+    width: 100%;
+    height: 100%;
+}
+
+#content iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+
+/* Painel flutuante */
+#controls {
+    position: fixed;
+    right: 16px;
+    bottom: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 9999;
+}
+
+/* Botões */
+.btn {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: none;
+    background: rgba(30,30,30,0.85);
+    color: #fff;
+    font-size: 20px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    box-shadow: 0 6px 18px rgba(0,0,0,.4);
+    transition: all .2s ease;
+}
+
+.btn:active {
+    transform: scale(0.92);
+}
+
+/* Tooltip */
+.btn::after {
+    content: attr(data-label);
+    position: absolute;
+    right: 70px;
+    background: rgba(0,0,0,.75);
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    opacity: 0;
+    white-space: nowrap;
+    pointer-events: none;
+    transition: .2s;
+}
+
+.btn:hover::after {
+    opacity: 1;
+}
+
+/* Safe-area (notch) */
+body {
+    padding:
+        env(safe-area-inset-top)
+        env(safe-area-inset-right)
+        env(safe-area-inset-bottom)
+        env(safe-area-inset-left);
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+    <div id="content">
+        <!-- Conteúdo principal -->
+        <iframe id="frame" src="https://seusite.com"></iframe>
+    </div>
+</div>
+
+<!-- Controles -->
+<div id="controls">
+    <button class="btn" data-label="Tela cheia" onclick="toggleFullscreen()">⛶</button>
+    <button class="btn" data-label="Recarregar" onclick="reloadApp()">⟳</button>
+</div>
+
+<script>
+let isFullscreen = false;
+
+/* Fullscreen real */
+function requestFullscreen() {
+    const el = document.documentElement;
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+}
+
+function exitFullscreen() {
+    if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+}
+
+/* Toggle */
+function toggleFullscreen() {
+    if (!document.fullscreenElement) {
+        requestFullscreen();
+        isFullscreen = true;
+    } else {
+        exitFullscreen();
+        isFullscreen = false;
+    }
+}
+
+/* Reload */
+function reloadApp() {
+    const iframe = document.getElementById("frame");
+    iframe.src = iframe.src;
+}
+
+/* Bloqueios */
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
+
+/* Auto fullscreen */
+window.onload = () => {
+    setTimeout(requestFullscreen, 300);
+};
+</script>
+
+</body>
+</html>
