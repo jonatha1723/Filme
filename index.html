@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" 
+      content="width=device-width, initial-scale=1.0, 
+               maximum-scale=1.0, user-scalable=no">
+
+<title>Fullscreen WebView</title>
+
+<style>
+/* Reset total */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Remove scroll */
+html, body {
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    background: #000;
+}
+
+/* Container fullscreen real */
+#app {
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+/* Exemplo de conteúdo */
+iframe, video, canvas, div {
+    width: 100%;
+    height: 100%;
+    border: none;
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+    <!-- Conteúdo do app -->
+    <iframe src="https://seusite.com"></iframe>
+</div>
+
+<script>
+// Força fullscreen (Android + WebView compatível)
+function requestFullscreen() {
+    const el = document.documentElement;
+
+    if (el.requestFullscreen) el.requestFullscreen();
+    else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+    else if (el.msRequestFullscreen) el.msRequestFullscreen();
+}
+
+// Bloqueia zoom
+document.addEventListener('gesturestart', e => e.preventDefault());
+document.addEventListener('touchmove', e => e.preventDefault(), { passive:false });
+
+// Auto fullscreen ao carregar
+window.onload = () => {
+    setTimeout(requestFullscreen, 300);
+};
+</script>
+
+</body>
+</html>
