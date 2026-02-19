@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Button App</title>
+
+<style>
+/* Reset total */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Tela limpa */
+html, body {
+    width: 100%;
+    height: 100%;
+    background: #000;
+    overflow: hidden;
+}
+
+/* Centralização absoluta */
+#container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Botão azul */
+#btn {
+    width: 160px;
+    height: 60px;
+    background: #1e88ff;
+    border: none;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(30,136,255,0.35);
+    transition: all .2s ease;
+}
+
+/* Feedback toque */
+#btn:active {
+    transform: scale(0.95);
+    box-shadow: 0 6px 15px rgba(30,136,255,0.25);
+}
+</style>
+</head>
+
+<body>
+
+<div id="container">
+    <button id="btn">Entrar</button>
+</div>
+
+<script>
+document.getElementById("btn").onclick = () => {
+    alert("Botão pressionado");
+};
+</script>
+
+</body>
+</html>
