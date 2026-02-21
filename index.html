@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>WebView Local Media Browser</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #0f0f0f;
+    color: white;
+    text-align: center;
+}
+
+header {
+    padding: 15px;
+    background: #111;
+    font-size: 18px;
+}
+
+.container {
+    padding: 20px;
+}
+
+input {
+    display: none;
+}
+
+.btn {
+    background: #1e88e5;
+    border: none;
+    padding: 12px 20px;
+    margin: 10px;
+    color: white;
+    font-size: 16px;
+    border-radius: 6px;
+}
+
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.gallery img {
+    width: 100%;
+    border-radius: 6px;
+    object-fit: cover;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    WebView Local Photo Browser
+</header>
+
+<div class="container">
+    <label class="btn">
+        Selecionar Foto
+        <input type="file" accept="image/*" id="fileInput">
+    </label>
+
+    <button class="btn" onclick="downloadAll()">Salvar tudo local</button>
+
+    <div class="gallery" id="gallery"></div>
+</div>
+
+<script>
+let images = [];
+
+document.getElementById("fileInput").addEventListener("change", function(e){
+    const file = e.target.files[0];
+    if(!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(evt){
+        const base64 = evt.target.result;
+        images.push(base64);
+        renderGallery();
+    };
+    reader.readAsDataURL(file);
+});
+
+function renderGallery(){
+    const gallery = document.getElementById("gallery");
+    gallery.innerHTML = "";
+    images.forEach((img, index) => {
+        const el = document.createElement("img");
+        el.src = img;
+        el.onclick = () => downloadImage(img, index);
+        gallery.appendChild(el);
+    });
+}
+
+function downloadImage(base64, index){
+    const a = document.createElement("a");
+    a.href = base64;
+    a.download = `foto_${index+1}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+
+function downloadAll(){
+    images.forEach((img, i) => {
+        setTimeout(()=>downloadImage(img,i), i*300);
+    });
+}
+</script>
+
+</body>
+</html>
