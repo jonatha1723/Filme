@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Galeria Local IndexedDB</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    background:#0f0f0f;
+    color:#fff;
+    margin:0;
+    padding:15px;
+}
+
+h2{text-align:center;}
+
+.controls{
+    text-align:center;
+    margin-bottom:15px;
+}
+
+button{
+    padding:10px 15px;
+    margin:5px;
+    border:none;
+    border-radius:5px;
+    background:#1e88e5;
+    color:#fff;
+    font-size:14px;
+}
+
+.galeria{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(110px,1fr));
+    gap:10px;
+}
+
+.item{
+    background:#1a1a1a;
+    border-radius:6px;
+    padding:5px;
+    text-align:center;
+}
+
+.item img{
+    width:100%;
+    border-radius:5px;
+}
+
+.del{
+    margin-top:5px;
+    background:#e53935;
+    font-size:12px;
+    width:100%;
+}
+</style>
+</head>
+
+<body>
+
+<h2>📁 Galeria Local (IndexedDB)</h2>
+
+<div class="controls">
+    <input type="file" accept="image/*" id="inputImg">
+    <br>
+    <button onclick="salvarImagem()">Salvar</button>
+    <button onclick="limparTudo()">Limpar tudo</button>
+</div>
+
+<div class="galeria" id="galeria"></div>
+
+<script>
+let db;
+const request = indexedDB.open("GaleriaDB", 1);
+
+request.onupgradeneeded = function(e){
+    db = e.target.result;
+    if(!db.objectStoreNames.contains("imagens")){
+        db.createObjectStore("imagens", { keyPath: "id", autoIncrement: true });
+    }
+};
+
+request.onsuccess = function(e){
+    db = e.target.result;
+    carregarImagens();
+};
+
+request.onerror = function(){
+    alert("Erro ao abrir IndexedDB");
+};
+
+function salvarImagem(){
+    const file = document.getElementById("inputImg").files[0];
+    if(!file){
+        alert("Selecione uma imagem");
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e){
+        const tx = db.transaction(["imagens"], "readwrite");
+        const store = tx.objectStore("imagens");
+        store.add({ data: e.target.result, created: Date.now() });
+        tx.oncomplete = carregarImagens;
+    };
+    reader.readAsDataURL(file);
+}
+
+function carregarImagens(){
+    const galeria = document.getElementById("galeria");
+    galeria.innerHTML = "";
+
+    const tx = db.transaction(["imagens"], "readonly");
+    const store = tx.objectStore("imagens");
+    const req = store.openCursor();
+
+    req.onsuccess = function(e){
+        const cursor = e.target.result;
+        if(cursor){
+            const div = document.createElement("div");
+            div.className = "item";
+
+            const img = document.createElement("img");
+            img.src = cursor.value.data;
+
+            const btn = document.createElement("button");
+            btn.className = "del";
+            btn.innerText = "Excluir";
+            btn.onclick = ()=>deletarImagem(cursor.key);
+
+            div.appendChild(img);
+            div.appendChild(btn);
+            galeria.appendChild(div);
+
+            cursor.continue();
+        }
+    };
+}
+
+function deletarImagem(id){
+    const tx = db.transaction(["imagens"], "readwrite");
+    const store = tx.objectStore("imagens");
+    store.delete(id);
+    tx.oncomplete = carregarImagens;
+}
+
+function limparTudo(){
+    if(confirm("Deseja apagar todas as imagens?")){
+        const tx = db.transaction(["imagens"], "readwrite");
+        const store = tx.objectStore("imagens");
+        store.clear();
+        tx.oncomplete = carregarImagens;
+    }
+}
+</script>
+
+</body>
+</html>
