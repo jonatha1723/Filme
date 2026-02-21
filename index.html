@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8">
+<title>Salvar Imagens Local</title>
+<style>
+    body { font-family: Arial; padding: 20px; }
+    img { max-width: 150px; margin: 10px; border: 1px solid #ccc; }
+    .box { display: flex; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+
+<h2>Salvar imagens localmente</h2>
+
+<input type="file" accept="image/*" id="inputImg">
+<button onclick="salvarImagem()">Salvar</button>
+
+<h3>Imagens salvas:</h3>
+<div class="box" id="galeria"></div>
+
+<script>
+const input = document.getElementById('inputImg');
+const galeria = document.getElementById('galeria');
+
+function salvarImagem() {
+    const file = input.files[0];
+    if (!file) return alert("Selecione uma imagem");
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        let imagens = JSON.parse(localStorage.getItem("imagens")) || [];
+        imagens.push(e.target.result); // base64
+        localStorage.setItem("imagens", JSON.stringify(imagens));
+        carregarImagens();
+    };
+    reader.readAsDataURL(file);
+}
+
+function carregarImagens() {
+    galeria.innerHTML = "";
+    let imagens = JSON.parse(localStorage.getItem("imagens")) || [];
+
+    imagens.forEach((img64, index) => {
+        const img = document.createElement("img");
+        img.src = img64;
+
+        const btn = document.createElement("button");
+        btn.innerText = "X";
+        btn.onclick = () => deletarImagem(index);
+
+        const div = document.createElement("div");
+        div.appendChild(img);
+        div.appendChild(btn);
+
+        galeria.appendChild(div);
+    });
+}
+
+function deletarImagem(i){
+    let imagens = JSON.parse(localStorage.getItem("imagens")) || [];
+    imagens.splice(i,1);
+    localStorage.setItem("imagens", JSON.stringify(imagens));
+    carregarImagens();
+}
+
+carregarImagens();
+</script>
+
+</body>
+</html>
