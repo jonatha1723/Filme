@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plataforma | Acesso Restrito</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .glass-panel {
+            background: rgba(10, 15, 28, 0.8);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .glow-overlay {
+            position: fixed;
+            z-index: -1;
+            filter: blur(150px);
+            border-radius: 50%;
+            opacity: 0.12;
+        }
+        .loading-ring {
+            border-top-color: #22d3ee;
+            animation: rotate 0.8s linear infinite;
+        }
+        @keyframes rotate {
+            to { transform: rotate(360deg); }
+        }
+        .reveal {
+            animation: revealContent 0.5s ease-out forwards;
+        }
+        @keyframes revealContent {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        .hidden-el { display: none; }
+    </style>
+</head>
+<body class="bg-[#02040a] text-slate-300 min-h-screen flex items-center justify-center p-4 overflow-x-hidden">
+
+    <!-- Elementos visuais de fundo -->
+    <div class="glow-overlay bg-indigo-600 w-[500px] h-[500px] -top-48 -left-48"></div>
+    <div class="glow-overlay bg-cyan-500 w-[400px] h-[400px] -bottom-32 -right-32"></div>
+
+    <div class="w-full max-w-md relative reveal">
+        <div class="glass-panel rounded-[2.5rem] shadow-2xl overflow-hidden border border-slate-800/50">
+            
+            <!-- Indicador de Sincronização -->
+            <div id="sync-bar" class="h-1 w-full bg-slate-800 transition-all duration-1000">
+                <div id="sync-progress" class="h-full bg-gradient-to-r from-cyan-500 to-blue-600 w-0 transition-all duration-700"></div>
+            </div>
+
+            <div class="p-10">
+                <!-- Identidade Visual -->
+                <div class="flex flex-col items-center mb-10" id="brand-header">
+                    <div class="w-20 h-20 bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl flex items-center justify-center mb-6 border border-slate-700/50 shadow-2xl shadow-cyan-500/10">
+                        <i data-lucide="layers" class="text-cyan-400 w-10 h-10" id="status-icon"></i>
+                    </div>
+                    <h1 class="text-3xl font-bold text-white tracking-tight text-center" id="display-title">Portal de Entrada</h1>
+                    <p class="text-slate-500 text-sm mt-3 text-center" id="display-subtitle">Valide suas credenciais para continuar</p>
+                </div>
+
+                <!-- Notificações de Sistema -->
+                <div id="sys-msg" class="hidden-el mb-8 p-4 rounded-2xl flex items-center gap-3 text-sm border backdrop-blur-md">
+                    <i id="sys-icon" class="w-5 h-5"></i>
+                    <span id="sys-text" class="font-medium"></span>
+                </div>
+
+                <!-- Interface de Validação -->
+                <form id="auth-gate" class="space-y-6">
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Endereço de Rede</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-600 group-focus-within:text-cyan-400 transition-colors">
+                                <i data-lucide="mail" class="w-5 h-5"></i>
+                            </div>
+                            <input type="email" id="email" required placeholder="utilizador@servidor.com" 
+                                class="block w-full pl-14 pr-6 py-4 bg-slate-900/50 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/50 outline-none transition-all placeholder:text-slate-700 text-white">
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-2">Código de Acesso</label>
+                        <div class="relative group">
+                            <div class="absolute inset-y-0 left-0 pl-5 flex items-center pointer-events-none text-slate-600 group-focus-within:text-cyan-400 transition-colors">
+                                <i data-lucide="lock" class="w-5 h-5"></i>
+                            </div>
+                            <input type="password" id="password" required placeholder="••••••••" 
+                                class="block w-full pl-14 pr-6 py-4 bg-slate-900/50 border border-slate-800 rounded-2xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500/50 outline-none transition-all placeholder:text-slate-700 text-white">
+                        </div>
+                    </div>
+
+                    <button type="submit" id="gate-trigger" class="w-full py-5 bg-cyan-600 hover:bg-cyan-500 text-white font-bold rounded-2xl shadow-xl shadow-cyan-950/20 transition-all active:scale-[0.98] flex items-center justify-center gap-3 group">
+                        <span id="trigger-label">Autenticar</span>
+                        <div id="trigger-spinner" class="hidden-el loading-ring rounded-full border-2 border-t-2 border-slate-100/30 h-5 w-5"></div>
+                        <i data-lucide="chevron-right" class="w-5 h-5 group-hover:translate-x-1 transition-transform" id="arrow-icon"></i>
+                    </button>
+
+                    <div class="pt-2 text-center">
+                        <button type="button" id="switch-mode" class="text-xs text-slate-500 hover:text-cyan-400 font-semibold transition-all hover:tracking-wider">
+                            Solicitar Novo Registro de Acesso
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Painel de Redirecionamento -->
+                <div id="redirect-panel" class="hidden-el space-y-8 animate-pulse">
+                    <div class="p-6 bg-cyan-500/5 rounded-3xl border border-cyan-500/20 flex flex-col items-center">
+                        <div class="w-12 h-12 bg-cyan-500/10 rounded-full flex items-center justify-center mb-4">
+                            <i data-lucide="globe" class="text-cyan-400 w-6 h-6"></i>
+                        </div>
+                        <p class="text-xs text-slate-400 uppercase font-bold tracking-widest mb-1">Redirecionando para</p>
+                        <p class="text-white font-mono text-sm">doubleiasss.vercel.app</p>
+                    </div>
+                    
+                    <button id="manual-redirect" class="w-full py-5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-2xl border border-slate-700 transition-all flex items-center justify-center gap-3">
+                        Entrar na Plataforma Agora
+                        <i data-lucide="external-link" class="w-5 h-5"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="px-10 py-5 bg-slate-950/40 border-t border-slate-800/30 text-center">
+                <p class="text-[9px] text-slate-600 uppercase font-bold tracking-[0.3em]">
+                    Terminal de Dados Ativo &bull; V.2.1.0
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Integration -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+        import { 
+            getAuth, 
+            signInWithEmailAndPassword, 
+            createUserWithEmailAndPassword, 
+            onAuthStateChanged 
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+        import { 
+            getFirestore, 
+            doc, 
+            setDoc, 
+            serverTimestamp 
+        } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+        // Parâmetros de Instância
+        const firebaseConfig = {
+            apiKey: "AIzaSyDxovej2jTNykdvpv1YQeu2h_FLLexCd8U",
+            authDomain: "projeto-1-12294.firebaseapp.com",
+            projectId: "projeto-1-12294",
+            storageBucket: "projeto-1-12294.firebasestorage.app",
+            messagingSenderId: "111404864605",
+            appId: "1:111404864605:web:564e308c7610f270c5e9b4"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = "projeto-1-12294"; 
+        const TARGET_URL = "https://doubleiasss.vercel.app/";
+
+        lucide.createIcons();
+
+        // Mapeamento de Interface
+        const authGate = document.getElementById('auth-gate');
+        const redirectPanel = document.getElementById('redirect-panel');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const gateTrigger = document.getElementById('gate-trigger');
+        const triggerLabel = document.getElementById('trigger-label');
+        const triggerSpinner = document.getElementById('trigger-spinner');
+        const arrowIcon = document.getElementById('arrow-icon');
+        const switchMode = document.getElementById('switch-mode');
+        const sysMsg = document.getElementById('sys-msg');
+        const sysText = document.getElementById('sys-text');
+        const sysIcon = document.getElementById('sys-icon');
+        const syncProgress = document.getElementById('sync-progress');
+
+        let isLoginMode = true;
+
+        // Alternância de Estado Operacional
+        switchMode.addEventListener('click', () => {
+            isLoginMode = !isLoginMode;
+            triggerLabel.innerText = isLoginMode ? 'Autenticar' : 'Registrar Acesso';
+            switchMode.innerText = isLoginMode ? "Solicitar Novo Registro de Acesso" : "Voltar para Login de Rede";
+            document.getElementById('display-title').innerText = isLoginMode ? 'Portal de Entrada' : 'Registro Interno';
+            hideStatus();
+        });
+
+        // Verificação de Integridade de Sessão
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                syncProgress.style.width = "100%";
+                authGate.classList.add('hidden-el');
+                redirectPanel.classList.remove('hidden-el');
+                
+                document.getElementById('display-title').innerText = 'Identidade Confirmada';
+                document.getElementById('display-subtitle').innerText = 'Sincronização com servidor concluída';
+                document.getElementById('status-icon').setAttribute('data-lucide', 'check-circle');
+                document.getElementById('status-icon').classList.replace('text-cyan-400', 'text-emerald-400');
+                
+                // Registro Silencioso no Banco de Dados (Regra de Caminho Restrito)
+                try {
+                    const logRef = doc(db, 'artifacts', appId, 'users', user.uid, 'logs', 'access');
+                    await setDoc(logRef, {
+                        origin: window.location.origin,
+                        target: TARGET_URL,
+                        verifiedAt: serverTimestamp(),
+                        status: "active"
+                    }, { merge: true });
+
+                    // Encaminhamento Automático após Persistência
+                    setTimeout(() => {
+                        window.location.href = TARGET_URL;
+                    }, 2000);
+                } catch (e) {
+                    // Falha silenciosa ou log interno
+                }
+            } else {
+                authGate.classList.remove('hidden-el');
+                redirectPanel.classList.add('hidden-el');
+                syncProgress.style.width = "0%";
+            }
+            lucide.createIcons();
+        });
+
+        // Execução de Protocolo de Acesso
+        authGate.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            updateTriggerState(true);
+            hideStatus();
+
+            try {
+                if (isLoginMode) {
+                    await signInWithEmailAndPassword(auth, email, password);
+                } else {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                }
+            } catch (error) {
+                let msg = "Falha na verificação de rede.";
+                if (error.code === 'auth/invalid-email') msg = "Endereço de rede malformado.";
+                if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') msg = "Credenciais não conferem.";
+                if (error.code === 'auth/email-already-in-use') msg = "Identificador já em uso no sistema.";
+                
+                displayStatus(msg, 'error');
+            } finally {
+                updateTriggerState(false);
+            }
+        });
+
+        document.getElementById('manual-redirect').addEventListener('click', () => {
+            window.location.href = TARGET_URL;
+        });
+
+        // Gerenciamento de UI
+        function updateTriggerState(active) {
+            gateTrigger.disabled = active;
+            triggerSpinner.classList.toggle('hidden-el', !active);
+            triggerLabel.classList.toggle('hidden-el', active);
+            arrowIcon.classList.toggle('hidden-el', active);
+        }
+
+        function displayStatus(text, type) {
+            sysMsg.classList.remove('hidden-el', 'bg-red-500/10', 'text-red-400', 'border-red-500/20');
+            sysText.innerText = text;
+            
+            if (type === 'error') {
+                sysMsg.classList.add('bg-red-500/10', 'text-red-400', 'border-red-500/20');
+                sysIcon.setAttribute('data-lucide', 'shield-alert');
+            }
+            lucide.createIcons();
+        }
+
+        function hideStatus() {
+            sysMsg.classList.add('hidden-el');
+        }
+    </script>
+</body>
+</html>
+
