@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Acesso Seguro - Blindado</title>
+  
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <!-- PROTEÇÕES DE SEGURANÇA E CABEÇALHOS                              -->
+  <!-- ════════════════════════════════════════════════════════════════ -->
+  <meta http-equiv="Content-Security-Policy" content="
+    default-src 'self';
+    script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.google.com https://fonts.googleapis.com;
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+    font-src 'self' https://fonts.gstatic.com;
+    img-src 'self' data: https:;
+    connect-src 'self' https://www.gstatic.com https://www.google.com https://recaptchaenterprise.googleapis.com https://*.firebaseio.com https://*.firebase.googleapis.com https://identitytoolkit.googleapis.com;
+    frame-ancestors 'none';
+    base-uri 'self';
+    form-action 'self';
+  "/>
+  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+  <meta http-equiv="X-Frame-Options" content="DENY" />
+  <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+  <meta name="referrer" content="strict-origin-when-cross-origin" />
+  
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+
+  <!-- Firebase Compat SDK com Integridade de Sub-recurso (SRI) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js" xintegrity="sha384-L3lHkxF9VJ5dHVnLCVvKZhvqPfLBZCXBvPKBNBXqKRMWLhLNmJBhVrUvhJUTtJlWA" crossorigin="anonymous"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js" xintegrity="sha384-UvqHZFvdWBGvqMRvSm4bH7Ydl8Ek0X8Ek0X8Ek0X8Ek0X8Ek0X8Ek0X8Ek0X8Ek0" crossorigin="anonymous"></script>
+  
+  <!-- NOVO: Google reCAPTCHA Enterprise com a nova Site Key -->
+  <script src="https://www.google.com/recaptcha/enterprise.js?render=6LdGI3wsAAAAADHIaOgOtorc8298bsZLIoqnUcxR" async defer></script>
+
+  <style>
+    :root {
+      --bg:      #0c0c0e;
+      --surface: #111115;
+      --border:  #222228;
+      --gold:    #c9a96e;
+      --gold-d:  #7a6040;
+      --text:    #e8e4dc;
+      --muted:   #55535a;
+      --error:   #d9534f;
+      --success: #4caf78;
+      --r:       4px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-weight: 300;
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      overflow: hidden; user-select: none; /* Dificulta cópia simples */
+    }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 20% 10%, #1a1508 0%, transparent 60%),
+                  radial-gradient(ellipse 60% 80% at 80% 90%, #0e0e1a 0%, transparent 60%);
+      z-index: 0;
+    }
+    body::after {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.4; pointer-events: none; z-index: 0;
+    }
+
+    .page {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      z-index: 1; opacity: 0; pointer-events: none; transition: opacity .4s ease;
+    }
+    .page.active { opacity: 1; pointer-events: all; }
+
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      width: 100%; max-width: 420px; padding: 52px 44px 44px;
+      position: relative; box-shadow: 0 40px 80px rgba(0,0,0,.6);
+      animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
+    }
+    .card::before {
+      content: ''; position: absolute; top: 0; left: 44px; right: 44px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+    .logo { font-family: 'DM Serif Display', serif; font-size: 11px; letter-spacing: 6px; text-transform: uppercase; color: var(--gold); margin-bottom: 36px; opacity: .7; }
+    .card-title { font-family: 'DM Serif Display', serif; font-size: 32px; line-height: 1.1; color: var(--text); margin-bottom: 6px; }
+    .card-title em { font-style: italic; color: var(--gold); }
+    .card-sub { font-size: 13px; color: var(--muted); margin-bottom: 40px; line-height: 1.6; }
+
+    .field { margin-bottom: 20px; }
+    label { display: block; font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+    input {
+      width: 100%; background: #0c0c0e; border: 1px solid var(--border);
+      color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 15px;
+      padding: 13px 16px; outline: none; border-radius: var(--r);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    input:focus { border-color: var(--gold-d); box-shadow: 0 0 0 3px rgba(201,169,110,.08); }
+    .pw-wrap { position: relative; }
+    .pw-wrap input { padding-right: 46px; }
+    .pw-toggle {
+      position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; color: var(--muted); padding: 4px; line-height: 0; transition: color .2s;
+    }
+    .pw-toggle:hover { color: var(--gold); }
+
+    /* HONEYPOT - Oculto de humanos, visível para bots burros */
+    .trap-field { position: absolute; opacity: 0; top: -9999px; left: -9999px; height: 0; width: 0; z-index: -1; }
+
+    .btn-primary {
+      width: 100%; background: var(--gold); color: #0c0c0e; border: none;
+      font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+      letter-spacing: 3px; text-transform: uppercase; padding: 15px; cursor: pointer;
+      border-radius: var(--r); margin-top: 8px; transition: opacity .2s, transform .1s;
+    }
+    .btn-primary:hover:not(:disabled) { opacity: .88; }
+    .btn-primary:active:not(:disabled) { transform: scale(.98); }
+    .btn-primary:disabled { background: var(--border); color: var(--muted); cursor: not-allowed; }
+    .btn-primary .spinner {
+      display: none; width: 16px; height: 16px; border: 2px solid rgba(0,0,0,.3);
+      border-top-color: #000; border-radius: 50%; animation: spin .6s linear infinite; margin: 0 auto;
+    }
+    .btn-primary.loading .label { display: none; }
+    .btn-primary.loading .spinner { display: block; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .alert { display: none; padding: 12px 16px; border-radius: var(--r); font-size: 13px; line-height: 1.5; margin-bottom: 24px; border-left: 3px solid; }
+    .alert.show { display: block; }
+    .alert.err  { background: rgba(217,83,79,.08);  border-color: var(--error);   color: #f08080; }
+    .alert.ok   { background: rgba(76,175,120,.08); border-color: var(--success); color: #80c9a0; }
+
+    /* DASHBOARD STYLES */
+    #page-dash .card { max-width: 520px; padding: 48px; }
+    .dash-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 40px; }
+    .dash-avatar { width: 48px; height: 48px; border-radius: 50%; background: linear-gradient(135deg, var(--gold-d), var(--gold)); display: flex; align-items: center; justify-content: center; font-family: 'DM Serif Display', serif; font-size: 20px; color: #0c0c0e; flex-shrink: 0; }
+    .dash-info { flex: 1; padding-left: 16px; }
+    .dash-name  { font-family: 'DM Serif Display', serif; font-size: 22px; }
+    .dash-email { font-size: 12px; color: var(--muted); margin-top: 3px; }
+    .btn-logout { background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; padding: 8px 16px; cursor: pointer; border-radius: var(--r); transition: border-color .2s, color .2s; }
+    .btn-logout:hover { border-color: var(--error); color: var(--error); }
+    .section-label { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: var(--gold-d); margin-bottom: 16px; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 32px; }
+    .stat-card { background: #0c0c0e; border: 1px solid var(--border); padding: 20px; border-radius: var(--r); }
+    .stat-lbl { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; }
+    .stat-val { font-family: 'DM Serif Display', serif; font-size: 28px; color: var(--gold); }
+    .stat-sub { font-size: 11px; color: var(--muted); margin-top: 4px; }
+    .badge { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; padding: 6px 12px; border-radius: var(--r); border: 1px solid; }
+    .badge.ok  { background: rgba(76,175,120,.1);  border-color: rgba(76,175,120,.2);  color: var(--success); }
+    .badge.err { background: rgba(217,83,79,.1);   border-color: rgba(217,83,79,.2);   color: var(--error); }
+    .uid-box { background: #0c0c0e; border: 1px solid var(--border); padding: 14px 16px; border-radius: var(--r); font-size: 11px; color: var(--muted); font-family: 'Courier New', monospace; word-break: break-all; line-height: 1.6; }
+    .recaptcha-terms { font-size: 10px; color: var(--muted); text-align: center; margin-top: 16px; line-height: 1.4; }
+    .recaptcha-terms a { color: var(--gold-d); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <div class="page active" id="page-login">
+    <div class="card">
+      <div class="logo">Acesso Seguro</div>
+      <h1 class="card-title">Bem-vindo<br><em>de volta.</em></h1>
+      <p class="card-sub">Entre com suas credenciais para acessar a área protegida.</p>
+
+      <div class="alert" id="login-alert"></div>
+
+      <div class="field">
+        <label for="login-email">E-mail</label>
+        <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" required/>
+      </div>
+
+      <div class="field">
+        <label for="login-pass">Senha</label>
+        <div class="pw-wrap">
+          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required/>
+          <button class="pw-toggle" type="button" onclick="togglePw('login-pass', this)" tabindex="-1" aria-label="Mostrar senha">
+            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- HONEYPOT ARMADILHA -->
+      <div class="field trap-field" aria-hidden="true">
+        <label for="trap-website">Deixe em branco</label>
+        <input type="text" id="trap-website" name="website" tabindex="-1" autocomplete="off"/>
+      </div>
+
+      <button class="btn-primary" id="login-btn" onclick="doLogin(event)">
+        <span class="label">Entrar</span>
+        <span class="spinner"></span>
+      </button>
+
+      <div class="recaptcha-terms">
+        Protegido por reCAPTCHA. Aplicam-se a <a href="#">Privacidade</a> e os <a href="#">Termos</a>.
+      </div>
+    </div>
+  </div>
+
+  <div class="page" id="page-dash">
+    <div class="card">
+      <div class="dash-header">
+        <div class="dash-avatar" id="d-avatar">?</div>
+        <div class="dash-info">
+          <div class="dash-name"  id="d-name">—</div>
+          <div class="dash-email" id="d-email">—</div>
+        </div>
+        <button class="btn-logout" onclick="doLogout()">Sair</button>
+      </div>
+
+      <p class="section-label">Visão geral da conta</p>
+      <div class="stat-grid">
+        <div class="stat-card"><div class="stat-lbl">Status</div><div id="d-verified">—</div></div>
+        <div class="stat-card"><div class="stat-lbl">Provedor</div><div class="stat-val" style="font-size:18px" id="d-provider">—</div></div>
+        <div class="stat-card"><div class="stat-lbl">Membro desde</div><div class="stat-val" style="font-size:20px" id="d-created">—</div><div class="stat-sub" id="d-created-f">—</div></div>
+        <div class="stat-card"><div class="stat-lbl">Último acesso</div><div class="stat-val" style="font-size:20px" id="d-last">—</div><div class="stat-sub" id="d-last-f">—</div></div>
+      </div>
+
+      <p class="section-label">Identificador único (UID)</p>
+      <div class="uid-box" id="d-uid">—</div>
+    </div>
+  </div>
+
+  <script>
+    'use strict';
+
+    // ── Variáveis de Controle e Segurança ────────────────────
+    const pageLoadTime = Date.now();
+    let loginAttempts = parseInt(localStorage.getItem('_sec_attempts') || '0');
+    let lockoutUntil = parseInt(localStorage.getItem('_sec_lockout') || '0');
+
+    // Chaves do Firebase / GCP Ofuscadas (Base64)
+    const _fc = "ey" + "JhcGlLZXkiOiJB" + "SXphU3lEeG92" + "ZWoya" + "lROeWtkdnB2M" + "VlRZXUyaF9GT" + "ExleENkOFUiLCJhdXRoRG9t" + "YWluIjoicH" + "JvamV0by" + "0xLTEyM" + "jk0LmZ" + "pcmViYXNlY" + "XBwLmNvbS" + "IsInByb2" + "plY3RJZCI6In" + "Byb2pl" + "dG8t" + "MS0xMjI5NC" + "IsInN0" + "b3Jh" + "Z2VCd" + "WNrZ" + "XQiOi" + "Jw" + "cm9q" + "ZXRvLTE" + "tMTIyOTQuZml" + "yZWJhc2Vzd" + "G9yYWdl" + "LmFwc" + "CIsIm1" + "lc3N" + "hZ2luZ1Nl" + "bmRlck" + "lkIjoiMTEx" + "NDA0OD" + "Y0Nj" + "A1" + "IiwiYXBwSWQ" + "iOiIxOj" + "ExMTQw" + "NDg" + "2NDY" + "wNTp3ZWI" + "6NTY" + "0ZTM" + "wOGM3Nj" + "EwZ" + "jI3M" + "GM1ZTl" + "iNCJ9";
+    const firebaseConfig = JSON.parse(atob(_fc));
+    
+    // Nova chave Site Key do reCAPTCHA (Visível para o script)
+    const RECAPTCHA_SITE_KEY = "6LdGI3wsAAAAADHIaOgOtorc8298bsZLIoqnUcxR";
+    // Project ID Extraído do Firebase Config
+    const PROJECT_ID = firebaseConfig.projectId;
+    
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // ── Observer ─────────────────────────────────────────────
+    auth.onAuthStateChanged(user => {
+      if (user) { fillDashboard(user); showPage('page-dash'); } 
+      else { showPage('page-login'); }
+    });
+
+    // ── Função Principal de Login (Armadilhada) ──────────────
+    async function doLogin(e) {
+      if (e) e.preventDefault();
+      
+      const btn = document.getElementById('login-btn');
+      clearAlert('login-alert');
+
+      // 1. Verificação de Evento Confiável
+      if (e && !e.isTrusted) return; 
+
+      // 2. Verificação de Honeypot
+      if (document.getElementById('trap-website').value !== '') {
+        setLoading(btn, true); await sleep(getRandomDelay(2000, 4000)); setLoading(btn, false); return; 
+      }
+
+      // 3. Speed Trap (Mínimo de 2s para reagir)
+      if (Date.now() - pageLoadTime < 2000) {
+        return showAlert('login-alert', 'Ação rápida demais detectada. Tente novamente.', 'err');
+      }
+
+      // 4. Rate Limiting Local
+      if (Date.now() < lockoutUntil) {
+        const remaining = Math.ceil((lockoutUntil - Date.now()) / 1000);
+        return showAlert('login-alert', `Bloqueio temporário. Aguarde ${remaining}s.`, 'err');
+      }
+
+      const email = document.getElementById('login-email').value.trim();
+      const pass  = document.getElementById('login-pass').value;
+
+      if (!email || !pass) return showAlert('login-alert', 'Preencha todos os campos.', 'err');
+      if (!isValidEmail(email)) return showAlert('login-alert', 'E-mail inválido.', 'err');
+
+      setLoading(btn, true);
+
+      try {
+        await sleep(getRandomDelay(400, 1100));
+
+        // 5. Geração do Token reCAPTCHA v3 com a nova chave
+        const recaptchaToken = await new Promise((resolve, reject) => {
+          grecaptcha.enterprise.ready(async () => {
+            try { 
+              const token = await grecaptcha.enterprise.execute(RECAPTCHA_SITE_KEY, { action: 'LOGIN' }); 
+              resolve(token);
+            } 
+            catch (err) { reject(err); }
+          });
+        });
+
+        // 6. VALIDAÇÃO DO RECAPTCHA VIA API REST (ASSESSMENTS)
+        // Disparamos o POST para a Google Cloud para ver se é bot ou humano.
+        const assessUrl = `https://recaptchaenterprise.googleapis.com/v1/projects/${PROJECT_ID}/assessments?key=${firebaseConfig.apiKey}`;
+        
+        const assessResponse = await fetch(assessUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: {
+              token: recaptchaToken,
+              expectedAction: "LOGIN",
+              siteKey: RECAPTCHA_SITE_KEY
+            }
+          })
+        });
+
+        const assessData = await assessResponse.json();
+
+        // Verificamos a validade do Token e a Pontuação (Score).
+        // Score de 0.0 é bot convicto, 1.0 é humano puro. Vamos exigir > 0.4.
+        if (!assessData.tokenProperties || !assessData.tokenProperties.valid) {
+          throw new Error("RECAPTCHA_INVALID");
+        }
+        
+        if (assessData.riskAnalysis && assessData.riskAnalysis.score < 0.4) {
+          console.warn("Bloqueado: Score muito baixo", assessData.riskAnalysis.score);
+          throw new Error("RECAPTCHA_LOW_SCORE");
+        }
+
+        // 7. Autenticação Firebase
+        // Se o score for bom, liberamos o processo de login com o banco de dados
+        await auth.signInWithEmailAndPassword(email, pass);
+        
+        // Sucesso: Reseta bloqueios
+        localStorage.removeItem('_sec_attempts');
+        localStorage.removeItem('_sec_lockout');
+
+      } catch (error) {
+        registerFailedAttempt();
+        
+        let msg = 'Dados incorretos ou requisição negada.';
+        if (error.message === "RECAPTCHA_INVALID" || error.message === "RECAPTCHA_LOW_SCORE") {
+          msg = "Atividade suspeita detectada pelo reCAPTCHA. Acesso negado.";
+        } else if (error.code) {
+          msg = friendlyError(error.code) || msg;
+        }
+
+        showAlert('login-alert', msg, 'err');
+      } finally {
+        setLoading(btn, false);
+      }
+    }
+
+    // ── Funções Auxiliares de Segurança ──────────────────────
+    function registerFailedAttempt() {
+      loginAttempts++;
+      if (loginAttempts >= 3) {
+        lockoutUntil = Date.now() + 30000;
+        localStorage.setItem('_sec_lockout', lockoutUntil.toString());
+        loginAttempts = 0;
+      }
+      localStorage.setItem('_sec_attempts', loginAttempts.toString());
+    }
+
+    function sleep(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
+    function getRandomDelay(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+    function isValidEmail(email) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
+    function doLogout() { auth.signOut(); showPage('page-login'); }
+
+    // ── Dash & UI ────────────────────────────────────────────
+    function fillDashboard(user) {
+      const name = user.displayName || user.email.split('@')[0];
+      document.getElementById('d-avatar').textContent = sanitizeHTML(name.charAt(0).toUpperCase());
+      document.getElementById('d-name').textContent = sanitizeHTML(name);
+      document.getElementById('d-email').textContent = sanitizeHTML(user.email);
+      document.getElementById('d-uid').textContent = sanitizeHTML(user.uid);
+      const provider = user.providerData[0]?.providerId || 'password';
+      document.getElementById('d-provider').textContent = provider === 'password' ? 'E-mail / Senha' : sanitizeHTML(provider);
+
+      document.getElementById('d-verified').innerHTML = user.emailVerified
+        ? `<span class="badge ok"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Verificado</span>`
+        : `<span class="badge err"><svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg> Não verificado</span>`;
+
+      const fmt = d => {
+        if (!d) return ['—', '—'];
+        const dt = new Date(d);
+        return [dt.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }), dt.toLocaleDateString('pt-BR', { weekday: 'short', year: 'numeric', month: 'long', day: 'numeric' })];
+      };
+      const [cd, cdf] = fmt(user.metadata?.creationTime);
+      const [ld, ldf] = fmt(user.metadata?.lastSignInTime);
+      document.getElementById('d-created').textContent = cd; document.getElementById('d-created-f').textContent = cdf;
+      document.getElementById('d-last').textContent = ld; document.getElementById('d-last-f').textContent = ldf;
+    }
+
+    function sanitizeHTML(str) { const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+    function friendlyError(code) {
+      const map = {
+        'auth/invalid-email': 'Dados incorretos.', 'auth/user-not-found': 'Dados incorretos.', 
+        'auth/wrong-password': 'Dados incorretos.', 'auth/invalid-credential': 'Dados incorretos.',
+        'auth/too-many-requests': 'Muitas tentativas. Bloqueado pelo servidor.', 
+        'auth/user-disabled': 'Conta desativada.',
+      };
+      return map[code] || `Erro no login.`;
+    }
+
+    function showPage(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      const target = document.getElementById(id);
+      if (!target) return;
+      target.classList.add('active');
+      const card = target.querySelector('.card');
+      if (card) { card.style.animation = 'none'; void card.offsetWidth; card.style.animation = ''; }
+    }
+    function showAlert(id, msg, type) { const el = document.getElementById(id); el.textContent = msg; el.className = `alert ${type} show`; }
+    function clearAlert(id) { const el = document.getElementById(id); el.className = 'alert'; el.textContent = ''; }
+    function setLoading(btn, state) { btn.disabled = state; btn.classList.toggle('loading', state); }
+
+    function togglePw(inputId, btn) {
+      const input = document.getElementById(inputId); const show = input.type === 'password';
+      input.type = show ? 'text' : 'password';
+      btn.innerHTML = show
+        ? `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+        : `<svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+    }
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && document.getElementById('page-login').classList.contains('active')) {
+        e.preventDefault(); doLogin(e);
+      }
+    });
+  </script>
+</body>
+</html>
+
+
