@@ -6,7 +6,8 @@
   <meta http-equiv="X-UA-Compatible" content="ie=edge" />
   
   <!-- Proteção contra XSS, Clickjacking e outras vulnerabilidades -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self'">
+  <!-- CSP Atualizado para permitir o carregamento e execução do hCaptcha -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://js.hcaptcha.com https://*.hcaptcha.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://*.hcaptcha.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.hcaptcha.com; frame-src 'self' https://*.hcaptcha.com;">
   <meta http-equiv="X-Content-Type-Options" content="nosniff">
   <meta http-equiv="X-Frame-Options" content="DENY">
   <meta http-equiv="X-XSS-Protection" content="1; mode=block">
@@ -14,6 +15,9 @@
   
   <title>Acesso Seguro</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+  
+  <!-- Script do hCaptcha -->
+  <script src="https://js.hcaptcha.com/1/api.js" async defer></script>
 
   <style>
     :root {
@@ -58,6 +62,7 @@
       display: flex; align-items: center; justify-content: center;
       z-index: 1; opacity: 0; pointer-events: none;
       transition: opacity .4s ease;
+      overflow-y: auto; /* Permite rolagem se a tela for muito pequena */
     }
     .page.active { opacity: 1; pointer-events: all; }
 
@@ -66,6 +71,7 @@
       width: 100%; max-width: 420px; padding: 52px 44px 44px;
       position: relative; box-shadow: 0 40px 80px rgba(0,0,0,.6);
       animation: cardIn .5s cubic-bezier(.22,1,.36,1) both;
+      margin: 20px 0; /* Espaçamento caso haja scroll */
     }
     .card::before {
       content: ''; position: absolute;
@@ -116,6 +122,12 @@
       color: var(--muted); padding: 4px; line-height: 0; transition: color .2s;
     }
     .pw-toggle:hover { color: var(--gold); }
+
+    .captcha-wrap {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
 
     .btn-primary {
       width: 100%; background: var(--gold); color: #0c0c0e; border: none;
@@ -221,28 +233,35 @@
 
       <div class="alert" id="login-alert"></div>
 
-      <div class="field">
-        <label for="login-email">E-mail</label>
-        <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" required/>
-      </div>
-
-      <div class="field">
-        <label for="login-pass">Senha</label>
-        <div class="pw-wrap">
-          <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required/>
-          <button class="pw-toggle" type="button" onclick="togglePw('login-pass', this)" aria-label="Mostrar senha">
-            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
+      <form id="login-form" onsubmit="doLogin(event)">
+        <div class="field">
+          <label for="login-email">E-mail</label>
+          <input type="email" id="login-email" placeholder="seu@email.com" autocomplete="email" required/>
         </div>
-      </div>
 
-      <button class="btn-primary" id="login-btn" onclick="doLogin(event)">
-        <span class="label">Entrar</span>
-        <span class="spinner"></span>
-      </button>
+        <div class="field">
+          <label for="login-pass">Senha</label>
+          <div class="pw-wrap">
+            <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password" required/>
+            <button class="pw-toggle" type="button" onclick="togglePw('login-pass', this)" aria-label="Mostrar senha">
+              <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- hCaptcha Widget -->
+        <div class="captcha-wrap">
+          <div class="h-captcha" data-sitekey="11b8fcd2-8f02-45b8-bca6-098c4ed2312c" data-theme="dark"></div>
+        </div>
+
+        <button type="submit" class="btn-primary" id="login-btn">
+          <span class="label">Entrar</span>
+          <span class="spinner"></span>
+        </button>
+      </form>
 
       <div class="security-info">
         ✓ Conexão segura | ✓ Proteção contra bots | ✓ Dados criptografados
@@ -347,9 +366,23 @@
         }
       }
 
-      login(email, password) {
+      login(email, password, captchaToken) {
         return new Promise((resolve, reject) => {
           setTimeout(() => {
+            /*
+              NOTA SOBRE SEGURANÇA (Para o Backend):
+              A verificação real do token deve OBRIGATORIAMENTE ocorrer no backend.
+              Fazer a requisição POST para https://api.hcaptcha.com/siteverify diretamente 
+              do frontend causará um erro de CORS e exporá a sua secret (ES_99da...).
+              
+              Exemplo de fluxo esperado no seu backend (Node.js/PHP/Python):
+              1. Receber 'email', 'password' e 'captchaToken'
+              2. Fazer request POST para hCaptcha com:
+                 secret: ES_99da8201893242e6abfd0be9ad8ee2a5
+                 response: captchaToken
+              3. Se 'success' for true, prosseguir com a validação do usuário.
+            */
+
             const users = this.getStoredUsers();
             const user = users.find(u => u.email === email);
 
@@ -437,15 +470,24 @@
         return showAlert('login-alert', 'A senha deve ter no mínimo 6 caracteres.', 'err');
       }
 
+      // Validação do hCaptcha no Frontend
+      const captchaResponse = hcaptcha.getResponse();
+      if (!captchaResponse) {
+        return showAlert('login-alert', 'Por favor, resolva o desafio de segurança (Captcha).', 'err');
+      }
+
       setLoading(btn, true);
 
       try {
-        const session = await auth.login(email, pass);
+        // Passando o token do captcha para a função de login (que enviaria ao seu backend)
+        const session = await auth.login(email, pass, captchaResponse);
         fillDashboard(session);
         showPage('page-dash');
       } catch (error) {
         showAlert('login-alert', error.message || 'Erro ao processar o login. Tente novamente.', 'err');
         console.error('[Login Error]', error.code);
+        // Reseta o captcha em caso de erro (ex: senha incorreta) para o usuário tentar novamente
+        hcaptcha.reset();
       } finally {
         setLoading(btn, false);
       }
@@ -455,6 +497,7 @@
       auth.logout();
       document.getElementById('login-email').value = '';
       document.getElementById('login-pass').value = '';
+      if(typeof hcaptcha !== 'undefined') hcaptcha.reset(); // Reseta captcha ao deslogar
       clearAlert('login-alert');
       showPage('page-login');
     }
@@ -536,13 +579,7 @@
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       return emailRegex.test(email) && email.length <= 254;
     }
-
-    document.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && document.getElementById('page-login').classList.contains('active')) {
-        e.preventDefault();
-        doLogin(e);
-      }
-    });
   </script>
 </body>
 </html>
+
